@@ -10,23 +10,20 @@ import { ArchetypeService } from './archetype';
 // The user asked to "set up the server". 
 // To allow them to test the server, we should probably toggle this.
 
-// CURRENT STATE: Still fetching from MTGO directly to keep the app working while they deploy.
-// I will add a comment on how to switch.
+// FALLBACK: Reverted to Direct Scraping temporarily while debugging Proxy 404
 const BASE_URL = 'https://www.mtgo.com';
-// const BASE_URL = 'http://localhost:3000/api'; // (When running backend locally)
+// const BASE_URL = 'https://meta-scope-eight.vercel.app/api'; 
 
 export const MtgoService = {
     async getLatestEvents(): Promise<Event[]> {
         try {
-            console.log('Fetching latest events from MTGO...');
+            console.log('Fetching latest events from MTGO (Direct)...');
             const response = await fetch(`${BASE_URL}/decklists`);
             const html = await response.text();
-            console.log(`Received HTML length: ${html.length}`);
 
             const events: Event[] = [];
 
-            // Broader regex: look for any <a> tag with an href containing "/decklist/"
-            // We don't enforce class="decklists-link" strictly or its order relative to href
+            // Regex (Restored)
             const linkRegex = /<a[^>]*href="([^"]*\/decklist\/[^"]*)"[^>]*>([\s\S]*?)<\/a>/gi;
 
             let match;
@@ -34,17 +31,14 @@ export const MtgoService = {
                 const href = match[1];
                 const innerHtml = match[2];
 
-                // Extract Title: Look for <h3> or just use the text if no h3
                 const titleMatch = /<h3[^>]*>(.*?)<\/h3>/i.exec(innerHtml);
                 const title = titleMatch ? titleMatch[1].trim() : innerHtml.replace(/<[^>]+>/g, '').trim();
 
-                // Extract Date: Look for <time>
                 const dateMatch = /<time[^>]+datetime="([^"]+)"/.exec(innerHtml);
                 const date = dateMatch ? dateMatch[1] : new Date().toISOString();
 
                 if (href && title) {
                     const id = href.split('/').pop() || '';
-
                     if (!id) continue;
 
                     const format = title.split(' ')[0] || 'Unknown';
@@ -53,7 +47,6 @@ export const MtgoService = {
                             : title.includes('Showcase') ? 'Showcase'
                                 : 'Tournament';
 
-                    // dedupe checks could go here
                     events.push({
                         id,
                         name: title,
@@ -64,8 +57,6 @@ export const MtgoService = {
                     });
                 }
             }
-
-            console.log(`Parsed ${events.length} events.`);
             return events;
         } catch (error) {
             console.error('Error fetching latest events:', error);

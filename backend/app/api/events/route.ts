@@ -61,6 +61,10 @@ export async function GET() {
             }
         }
 
+        // Fire and forget save to DB
+        // We don't await this because we don't want to slow down the user response
+        saveToSupabase(events);
+
         return NextResponse.json(events, {
             headers: {
                 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
@@ -70,5 +74,41 @@ export async function GET() {
     } catch (error) {
         console.error('API Error:', error);
         return NextResponse.json({ error: 'Failed to fetch events' }, { status: 500 });
+    }
+}
+
+// Helper to save to Supabase (Fire and Forget)
+async function saveToSupabase(events: Event[]) {
+    try {
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const key = process.env.SUPABASE_SERVICE_KEY; // Use Secret Key for writing
+
+        if (!url || !key) {
+            console.warn('Supabase credentials missing. Skipping save.');
+            return;
+        }
+
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(url, key);
+
+        const { error } = await supabase
+            .from('events')
+            .upsert(
+                events.map(e => ({
+                    id: e.id,
+                    name: e.name,
+                    date: e.date,
+                    format: e.format,
+                    type: e.type,
+                    raw_data: e
+                })),
+                { onConflict: 'id' }
+            );
+
+        if (error) console.error('Supabase Upsert Error:', error);
+        else console.log(`Saved ${events.length} events to Supabase.`);
+
+    } catch (err) {
+        console.error('Supabase Save Exception:', err);
     }
 }
