@@ -1,0 +1,97 @@
+{
+    "Modern": [
+        {
+            "name": "Rakdos Scam",
+            "required": [
+                "Grief",
+                "Not Dead After All"
+            ]
+        },
+        {
+            "name": "Rhinos",
+            "required": [
+                "Crashing Footfalls"
+            ]
+        },
+        {
+            "name": "Amulet Titan",
+            "required": [
+                "Primeval Titan",
+                "Amulet of Vigor"
+            ]
+        },
+        {
+            "name": "Murktide",
+            "required": [
+                "Murktide Regent"
+            ]
+        },
+        {
+            "name": "Tron",
+            "required": [
+                "Urza's Tower",
+                "Urza's Mine",
+                "Urza's Power Plant"
+            ]
+        },
+        {
+            "name": "Burn",
+            "required": [
+                "Lightning Bolt",
+                "Lava Spike"
+            ]
+        },
+        {
+            "name": "Yawgmoth",
+            "required": [
+                "Yawgmoth, Thran Physician"
+            ]
+        }
+    ],
+    "Pioneer": [
+        {
+            "name": "Rakdos Midrange",
+            "required": [
+                "Fable of the Mirror-Breaker",
+                "Thoughtseize"
+            ]
+        },
+        {
+            "name": "Mono-Green Devotion",
+            "required": [
+                "Nykthos, Shrine to Nyx",
+                "Karn, the Great Creator"
+            ]
+        },
+        {
+            "name": "Phoenix",
+            "required": [
+                "Arclight Phoenix"
+            ]
+        }
+    ],
+    "Legacy": [
+        {
+            "name": "Delver",
+            "required": [
+                "Delver of Secrets"
+            ]
+        },
+        {
+            "name": "Reanimator",
+            "required": [
+                "Entomb",
+                "Reanimate"
+            ]
+        }
+    ],
+    "Standard": [
+        {
+            "name": "Domain Ramp",
+            "required": [
+                "Atraxa, Grand Unifier",
+                "Leyline Binding"
+            ]
+        }
+    ]
+}
