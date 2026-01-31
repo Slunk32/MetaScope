@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, FlatList, Pressable, StatusBar, ActivityIndicator } from 'react-native';
-import { Stack } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
+import { Stack } from 'expo-router';
+import React, { useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, StatusBar, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const LOADING_MESSAGES = [
   "Aligning ley lines...",
@@ -221,7 +221,7 @@ export default function MetaScreen() {
                   </Pressable>
                 ))}
               </View>
-            </View>
+            </>
           )}
 
         </View>
