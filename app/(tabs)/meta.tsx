@@ -96,7 +96,7 @@ export default function MetaScreen() {
             <View className="flex-1 items-center justify-center">
               <ActivityIndicator size="large" color="#FFBE0B" />
               <Text className="text-zinc-500 mt-4 italic">
-                Checking the oracle...
+                {loadingMessage}
               </Text>
             </View>
           ) : (
