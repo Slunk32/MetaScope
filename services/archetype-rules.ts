@@ -116,6 +116,11 @@ export const RULES: ArchetypeRule[] = [
         mustContain: ["Aven Interrupter", "Voice of Victory", "Aang, Swift Savior"]
     },
     {
+        name: "Azorius Midrange",
+        format: "Standard",
+        mustContain: ["Aven Interrupter", "Empyrean Eagle", "Air Nomad Legacy", "Sunpearl Kirin"]
+    },
+    {
         name: "Dimir Midrange",
         format: "Standard",
         mustContain: ["Kaito, Bane of Nightmares", "Watery Grave", "Deep-Cavern Bat", "Tishana's Tidebinder", "Cecil, Dark Knight"]
