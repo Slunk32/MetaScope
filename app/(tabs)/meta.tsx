@@ -16,7 +16,8 @@ export default function MetaScreen() {
   const { data: snapshot, isLoading, error } = useQuery({
     queryKey: ['meta_analysis', selectedFormat],
     queryFn: async () => {
-      const response = await fetch(`https://meta-scope-backend.vercel.app/api/meta/analysis?format=${selectedFormat}`);
+      // Append timestamp to bypass Vercel Edge Cache for debugging
+      const response = await fetch(`https://meta-scope-backend.vercel.app/api/meta/analysis?format=${selectedFormat}&_t=${Date.now()}`);
       if (!response.ok) throw new Error('Failed to fetch meta analysis');
       return response.json();
     },
