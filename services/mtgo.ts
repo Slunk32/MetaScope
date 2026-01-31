@@ -1,4 +1,4 @@
-import { Card, Deck, Event } from '@/types';
+import { Deck, Event } from '@/types';
 import { ArchetypeService } from './archetype';
 
 const MTGO_URL = 'https://www.mtgo.com';
@@ -23,180 +23,19 @@ export const MtgoService = {
 
     async getEvent(id: string): Promise<Event | null> {
         try {
-            console.log(`Fetching event ${id} directly from MTGO...`);
-            const url = `${MTGO_URL}/decklist/${id}`;
-
-            const response = await fetch(url, {
-                headers: {
-                    // Full browser emulation to avoid "partial content" or blocks
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                    'Referer': 'https://www.mtgo.com/decklists',
-                    'Cache-Control': 'max-age=0',
-                    'Connection': 'keep-alive',
-                    'Sec-Fetch-Dest': 'document',
-                    'Sec-Fetch-Mode': 'navigate',
-                    'Sec-Fetch-Site': 'same-origin',
-                    'Sec-Fetch-User': '?1',
-                    'Upgrade-Insecure-Requests': '1',
-                }
-            });
+            console.log(`Fetching event ${id} from Backend...`);
+            // Use our backend proxy which handles the suffix stripping/caching
+            const response = await fetch(`https://meta-scope-backend.vercel.app/api/event/${id}`);
 
             if (!response.ok) {
-                console.error(`MTGO returned status ${response.status}`);
+                console.error(`Backend returned status ${response.status}`);
                 return null;
             }
 
-            const html = await response.text();
+            const eventData: Event = await response.json();
 
-            // Regex to find window.MTGO.decklists.data
-            const regex = /window\.MTGO\.decklists\.data\s*=\s*({[\s\S]*?});/;
-            const match = html.match(regex);
-
-            if (!match) {
-                // Check for common error states
-                if (html.includes('Error 404') || html.includes('Page Not Found')) {
-                    throw new Error('Event not found (404). ID might be invalid/future.');
-                }
-                if (html.includes('Coming Soon')) {
-                    throw new Error('Event data is not yet available (Coming Soon).');
-                }
-
-                // For other errors, log ONLY the title, no raw HTML
-                const title = html.match(/<title>(.*?)<\/title>/)?.[1] || 'Unknown Page';
-                console.warn(`[MTGO Scraper] Failed to find data regex. URL: ${url}`);
-                console.warn(`[MTGO Scraper] Page Title: ${title}`);
-
-                throw new Error('Failed to parse MTGO event data. Structure may have changed.');
-            }
-
-            const data = JSON.parse(match[1]);
-
-            // Create a map of loginid -> rank
-            // We use two sources:
-            // 1. 'standings' (Swiss results, usually cover everyone)
-            // 2. 'final_rank' (Top 8 results, overwrites Swiss rank for playoffs)
-            const rankMap = new Map<string, number>();
-
-            if (data.standings && Array.isArray(data.standings)) {
-                data.standings.forEach((s: any) => {
-                    if (s.loginid && s.rank) {
-                        rankMap.set(String(s.loginid), parseInt(s.rank, 10));
-                    }
-                });
-            }
-
-            if (data.final_rank && Array.isArray(data.final_rank)) {
-                data.final_rank.forEach((r: any) => {
-                    if (r.loginid && r.rank) {
-                        rankMap.set(String(r.loginid), parseInt(r.rank, 10));
-                    }
-                });
-            }
-
-            // Clean weird MTGO naming (e.g. "CMODERN" -> "Modern")
-            if (data.format && typeof data.format === 'string') {
-                data.format = data.format.replace(/^c(modern|pioneer|standard|legacy|vintage|pauper)/i, '$1');
-            }
-
-            // Map to our Deck type
-            const decks: Deck[] = (data.decklists || []).map((d: any, index: number) => {
-                // Universe Beyond / Skin Overrides
-                // MTGO sends internal names (e.g. "Kavaero"), we want the Skin name (e.g. "Spider-Man")
-                const CARD_OVERRIDES: Record<string, string> = {
-                    "Kavaero, Mind-Bitten": "Superior Spider-Man",
-                    "Darval, Whose Web Protects": "Spider-Man, Web-Slinger",
-                    "Mothwing Shroud": "Web Up",
-                    // "Enweb": "???", // Need to confirm specific card name if user reports it
-                    // Add more here as discovered:
-                    // "Internal Name": "Cool Skin Name"
-                };
-
-                // Helper to consolidate duplicates & apply overrides
-                const consolidate = (cards: any[]) => {
-                    const map = new Map<string, number>();
-                    cards.forEach((c: any) => {
-                        let name = c.card_attributes.card_name;
-                        // Apply override if exists
-                        if (CARD_OVERRIDES[name]) {
-                            name = CARD_OVERRIDES[name];
-                        }
-                        const qty = parseInt(c.qty, 10);
-                        map.set(name, (map.get(name) || 0) + qty);
-                    });
-                    return Array.from(map.entries()).map(([name, quantity]) => ({ name, quantity }));
-                };
-
-                const mainboard: Card[] = consolidate(d.main_deck || []);
-                const sideboard: Card[] = consolidate(d.sideboard_deck || []);
-
-                // Handle wins/result format variation
-                let result = '';
-                let rank = 0;
-                let cleanPlayer = d.player;
-
-                // Priority 1: Check if player name has "1st Place" info (Fallback)
-                const rankMatch = d.player.match(/(.*?)\s*\((\d+)(?:st|nd|rd|th)?\s+Place\)/i);
-
-                // Priority 2: Check explicit rank map (using loginid for precision)
-                // Note: d.loginid comes from the decklists object
-                const standingRank = rankMap.get(String(d.loginid));
-
-                if (rankMatch) {
-                    cleanPlayer = rankMatch[1];
-                    rank = parseInt(rankMatch[2], 10);
-                } else if (standingRank) {
-                    rank = standingRank;
-                }
-
-                if (rank > 0) {
-                    result = `${rank}${getOrdinal(rank)}`; // "1st", "20th"
-                }
-                else if (d.wins && typeof d.wins === 'object') {
-                    result = `${d.wins.wins}-${d.wins.losses}`;
-                } else if (d.wins) {
-                    result = `${d.wins} wins`;
-                } else if (id.toLowerCase().includes('challenge')) {
-                    // Fallback: If it's a Challenge and no explicit rank found, assume list order IS the rank
-                    // (But only provided we didn't find any standings data at all, to avoid partial matches)
-                    if (rankMap.size === 0) {
-                        rank = index + 1;
-                        result = `${rank}${getOrdinal(rank)}`;
-                    } else if (!rankMap.has(String(d.loginid))) {
-                        result = '-';
-                    }
-                }
-
-                return {
-                    id: `${id}-${cleanPlayer}`,
-                    player: cleanPlayer,
-                    result,
-                    mainboard,
-                    sideboard,
-                    archetype: 'Unknown',
-                    rank
-                };
-            });
-
-            // If we parsed ranks, sort by rank
-            const hasRanks = decks.some(d => d.rank && d.rank > 0);
-            if (hasRanks) {
-                decks.sort((a, b) => (a.rank || 999) - (b.rank || 999));
-            }
-
-            const parsedInfo = parseEventId(id);
-
-            const eventData: Event = {
-                id: id,
-                name: data.description || 'Event',
-                date: parsedInfo.date || data.starttime || new Date().toISOString(),
-                format: data.format || parsedInfo.format,
-                type: data.type || parsedInfo.type,
-                decks,
-            };
-
-            // Client-side enrichment
+            // Client-side enrichment: Classify Archetypes
+            // The backend currently returns 'Unknown' for archetypes, so we run our classifier here.
             if (eventData && eventData.decks) {
                 eventData.decks.forEach((d: Deck) => {
                     if (!d.archetype || d.archetype === 'Unknown') {

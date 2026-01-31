@@ -3,6 +3,7 @@ import { Deck } from '@/types';
 import FontAwesome from '@expo/vector-icons/FontAwesome'; // Import explicitly for DeckRow
 import { useQuery } from '@tanstack/react-query';
 import { Link, Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import React from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, TouchableOpacity, View } from 'react-native';
 
 export default function EventDetailScreen() {
@@ -18,6 +19,7 @@ export default function EventDetailScreen() {
     // Helper to clean up raw names
     const cleanTitle = (rawHost: string) => {
         return rawHost
+            .toLowerCase() // Normalize input first to fix "STANDARD Challenge" issues
             .replace(/-/g, ' ')
             .replace(/cpioneer/i, 'Pioneer')
             .replace(/tournament/i, 'Challenge')
@@ -72,7 +74,44 @@ export default function EventDetailScreen() {
         return `${months[parseInt(month, 10) - 1]} ${dayNum}${suffix} ${year}`;
     };
 
+    const [activeTab, setActiveTab] = React.useState<'standings' | 'meta'>('standings');
+
     const dateText = formatDate(isoDate);
+
+    // Calculate meta breakdown
+    const metaStats = React.useMemo(() => {
+        if (!event || !event.decks) return { box: [], top8: [], rest: [], all: [], isLeague: false };
+
+        const isLeague = titleText.toLowerCase().includes('league');
+        const counts: Record<string, number> = {}; // This is not used in the new logic, but kept for consistency if needed elsewhere
+        const top8Counts: Record<string, number> = {};
+        const restCounts: Record<string, number> = {};
+        const allCounts: Record<string, number> = {};
+
+        event.decks.forEach((d, i) => {
+            const arch = d.archetype || 'Unclassified';
+
+            if (isLeague) {
+                allCounts[arch] = (allCounts[arch] || 0) + 1;
+            } else {
+                if (i < 8) {
+                    top8Counts[arch] = (top8Counts[arch] || 0) + 1;
+                } else {
+                    restCounts[arch] = (restCounts[arch] || 0) + 1;
+                }
+            }
+        });
+
+        const sortByCount = (a: [string, number], b: [string, number]) => b[1] - a[1];
+
+        return {
+            isLeague,
+            all: Object.entries(allCounts).sort(sortByCount),
+            box: Object.entries(counts).sort(sortByCount), // Kept for consistency, but `counts` is empty
+            top8: Object.entries(top8Counts).sort(sortByCount),
+            rest: Object.entries(restCounts).sort(sortByCount),
+        };
+    }, [event, titleText]);
 
     // Stack config MUST be rendered before any early returns for it to apply during loading
     const stackConfig = (
@@ -123,11 +162,11 @@ export default function EventDetailScreen() {
     return (
         <View className="flex-1 bg-[#121212]">
             {stackConfig}
-
             {/* Solid Background */}
             <View className="absolute left-0 right-0 top-0 h-full bg-[#121212]" />
 
-            <View className="px-4 py-4 z-10 bg-[#121212]">
+            {/* Header Info */}
+            <View className="px-4 py-4 bg-[#121212]">
                 <View className="flex-row items-baseline justify-between">
                     <Text className="text-lg text-zinc-400 font-medium">
                         {dateText}
@@ -135,12 +174,94 @@ export default function EventDetailScreen() {
                 </View>
             </View>
 
-            <FlatList
-                data={event.decks}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => <DeckRow deck={item} eventId={event.id} />}
-                contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
-            />
+            {/* Tab Selector */}
+            <View className="flex-row border-b border-zinc-800 mb-4 mx-4">
+                <Pressable
+                    onPress={() => setActiveTab('standings')}
+                    className={`pb-3 mr-6 ${activeTab === 'standings' ? 'border-b-2 border-[#FFBE0B]' : ''}`}>
+                    <Text className={`text-base font-bold ${activeTab === 'standings' ? 'text-[#FFBE0B]' : 'text-zinc-500'}`}>
+                        Standings
+                    </Text>
+                </Pressable>
+                <Pressable
+                    onPress={() => setActiveTab('meta')}
+                    className={`pb-3 ${activeTab === 'meta' ? 'border-b-2 border-[#FFBE0B]' : ''}`}>
+                    <Text className={`text-base font-bold ${activeTab === 'meta' ? 'text-[#FFBE0B]' : 'text-zinc-500'}`}>
+                        Meta Breakdown
+                    </Text>
+                </Pressable>
+            </View>
+
+            {/* Content Area */}
+            {activeTab === 'standings' ? (
+                <FlatList
+                    data={event.decks}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => <DeckRow deck={item} eventId={event.id} />}
+                    contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
+                />
+            ) : (
+                <View className="flex-1 px-4">
+                    <FlatList
+                        data={[]}
+                        renderItem={({ item }) => null /* dummy */}
+                        ListHeaderComponent={
+                            <View className="pb-8">
+                                {metaStats.isLeague ? (
+                                    /* League View: Single Consolidated List */
+                                    <View className="bg-[#1C1C1E] p-4 rounded-2xl">
+                                        <Text className="text-xl font-bold text-white mb-4">🏆 League Meta (5-0)</Text>
+                                        {metaStats.all.map(([arch, count]) => (
+                                            <View key={arch} className="flex-row items-center justify-between py-2 border-b border-zinc-800 last:border-0">
+                                                <Text className="text-zinc-200 font-medium text-base">{arch}</Text>
+                                                <View className="bg-[#2C2C2E] px-3 py-1 rounded-full">
+                                                    <Text className="text-white font-bold">{count}</Text>
+                                                </View>
+                                            </View>
+                                        ))}
+                                    </View>
+                                ) : (
+                                    /* Challenge View: Top 8 Split */
+                                    <>
+                                        {/* Top 8 Section */}
+                                        {metaStats.top8.length > 0 && (
+                                            <View className="mb-6 bg-[#1C1C1E] p-4 rounded-2xl">
+                                                <Text className="text-xl font-bold text-white mb-4">🏆 Top 8 Meta</Text>
+                                                {metaStats.top8.map(([arch, count]) => (
+                                                    <View key={arch} className="flex-row items-center justify-between py-2 border-b border-zinc-800 last:border-0">
+                                                        <View className="flex-row items-center">
+                                                            {/* Removed rank numbering */}
+                                                            <Text className="text-zinc-200 font-medium text-base">{arch}</Text>
+                                                        </View>
+                                                        <View className="bg-[#2C2C2E] px-3 py-1 rounded-full">
+                                                            <Text className="text-[#FFBE0B] font-bold">{count}</Text>
+                                                        </View>
+                                                    </View>
+                                                ))}
+                                            </View>
+                                        )}
+
+                                        {/* Rest of Field Section */}
+                                        {metaStats.rest.length > 0 && (
+                                            <View className="bg-[#1C1C1E] p-4 rounded-2xl">
+                                                <Text className="text-xl font-bold text-white mb-4">📊 Rest of Field</Text>
+                                                {metaStats.rest.map(([arch, count]) => (
+                                                    <View key={arch} className="flex-row items-center justify-between py-2 border-b border-zinc-800 last:border-0">
+                                                        <Text className="text-zinc-200 font-medium text-base">{arch}</Text>
+                                                        <View className="bg-[#2C2C2E] px-3 py-1 rounded-full">
+                                                            <Text className="text-white font-bold">{count}</Text>
+                                                        </View>
+                                                    </View>
+                                                ))}
+                                            </View>
+                                        )}
+                                    </>
+                                )}
+                            </View>
+                        }
+                    />
+                </View>
+            )}
         </View>
     );
 }

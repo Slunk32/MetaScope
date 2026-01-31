@@ -27,7 +27,14 @@ export const RULES: ArchetypeRule[] = [
     {
         name: "Sultai Reanimator",
         format: "Standard",
-        mustContain: ["Bringer of the Last Gift", "Overlord of the Balemurk", "Formidable Speaker"],
+        mustContain: ["Bringer of the Last Gift", "Overlord of the Balemurk", "Formidable Speaker", "Ardyn, the Usurper"],
+        // MTGO sometimes uses "Kavaero, Mind-Bitten" instead of Universe Beyond names?
+        oneOf: ["Superior Spider-Man", "Kavaero, Mind-Bitten"]
+    },
+    {
+        name: "Sultai Reanimator",
+        format: "Standard",
+        mustContain: ["Bringer of the Last Gift", "Awaken the Honored Dead", "Formidable Speaker", "Ardyn, the Usurper"],
         // MTGO sometimes uses "Kavaero, Mind-Bitten" instead of Universe Beyond names?
         oneOf: ["Superior Spider-Man", "Kavaero, Mind-Bitten"]
     },
@@ -95,5 +102,47 @@ export const RULES: ArchetypeRule[] = [
         name: "Mono-Red Leyline Aggro",
         format: "Standard",
         mustContain: ["Leyline of Resonance", "Fire Nation Palace", "Hired Claw"]
+    },
+
+    // --- New Additions ---
+    {
+        name: "Boros Aggro",
+        format: "Standard",
+        mustContain: ["Hexing Squelcher", "Inspiring Vantage", "Catharsis", "Warleader's Call"]
+    },
+    {
+        name: "Azorius Tempo",
+        format: "Standard",
+        mustContain: ["Aven Interrupter", "Starting Town", "Empyrean Eagle", "Aang, Swift Savior"]
+    },
+    {
+        name: "Dimir Midrange",
+        format: "Standard",
+        mustContain: ["Kaito, Bane of Nightmares", "Watery Grave", "Deep-Cavern Bat", "Tishana's Tidebinder", "Cecil, Dark Knight"]
+    },
+    {
+        name: "Esper Self-Bounce",
+        format: "Standard",
+        mustContain: ["Nurturing Pixie", "Sunpearl Kirin", "Godless Shrine", "Hallowed Fountain", "Grim Bauble"]
+    },
+    {
+        name: "Mono-Red Aggro",
+        format: "Standard",
+        mustContain: ["Rockface Village", "Burnout Bashtronaut", "Burst Lightning", "Razorkin Needlehead", "Howlsquad Heavy"]
+    },
+    {
+        name: "Omniscience",
+        format: "Standard",
+        mustContain: ["Omniscience", "Marang River Regent", "Roiling Dragonstorm"]
+    },
+    {
+        name: "Selesnya Landfall",
+        format: "Standard",
+        mustContain: ["Earthbender Ascension", "Icetill Explorer", "Sazh's Chocobo", "Bristly Bill, Spine Sower", "Escape Tunnel"]
+    },
+    {
+        name: "Grixis Reanimator",
+        format: "Standard",
+        mustContain: ["Overlord of the Balemurk", "Deceit", "Ill-Timed Explosion", "Watery Grave", "Steam Vents"]
     }
 ];

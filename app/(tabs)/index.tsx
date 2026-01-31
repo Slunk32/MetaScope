@@ -20,8 +20,17 @@ export default function LatestEventsScreen() {
 
   const filteredData = useMemo(() => {
     if (!data) return [];
-    if (selectedFormat === 'All') return data;
-    return data.filter((e) => e.format === selectedFormat);
+
+    // Deduplicate by ID to prevent key errors
+    const seen = new Set();
+    const uniqueEvents = data.filter(e => {
+      if (seen.has(e.id)) return false;
+      seen.add(e.id);
+      return true;
+    });
+
+    if (selectedFormat === 'All') return uniqueEvents;
+    return uniqueEvents.filter((e) => e.format === selectedFormat);
   }, [data, selectedFormat]);
 
   if (isLoading) {

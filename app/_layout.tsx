@@ -5,8 +5,16 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import 'react-native-reanimated';
+import {
+  configureReanimatedLogger
+} from 'react-native-reanimated';
 import '../global.css';
+
+// This is the recommended fix for "Reading from `value` during component render" warnings
+// https://docs.swmansion.com/react-native-reanimated/docs/debugging/logger-configuration
+configureReanimatedLogger({
+  strict: false,
+});
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { LogBox } from 'react-native';
@@ -20,6 +28,7 @@ export {
 // Suppress known non-critical warnings
 LogBox.ignoreLogs([
   "[Reanimated] Writing to `value` during component render",
+  "[Reanimated] Reading from `value` during component render",
 ]);
 
 export const unstable_settings = {

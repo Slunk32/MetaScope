@@ -52,6 +52,6 @@ export const ArchetypeService = {
             return rule.name;
         }
 
-        return 'Unknown';
+        return 'Other';
     }
 };
