@@ -113,7 +113,7 @@ export const RULES: ArchetypeRule[] = [
     {
         name: "Azorius Tempo",
         format: "Standard",
-        mustContain: ["Aven Interrupter", "Starting Town", "Empyrean Eagle", "Aang, Swift Savior"]
+        mustContain: ["Aven Interrupter", "Empyrean Eagle", "Aang, Swift Savior"]
     },
     {
         name: "Dimir Midrange",
