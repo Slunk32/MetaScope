@@ -15,6 +15,16 @@ export default function EventDetailScreen() {
         enabled: !!id,
     });
 
+    // Helper to clean up raw names
+    const cleanTitle = (rawHost: string) => {
+        return rawHost
+            .replace(/-/g, ' ')
+            .replace(/cpioneer/i, 'Pioneer')
+            .replace(/tournament/i, 'Challenge')
+            .replace(/\b\w/g, c => c.toUpperCase())
+            .trim();
+    };
+
     // Helper to parse info from ID if API data is missing or generic
     const parseInfoFromId = (eventId: string | undefined) => {
         if (!eventId) return { name: 'Event Details', date: '' };
@@ -27,14 +37,11 @@ export default function EventDetailScreen() {
         // Extract Format/Name: "modern-challenge" -> "Modern Challenge"
         // Remove date and numbers from end
         const namePart = eventId.split(/\d{4}-\d{2}-\d{2}/)[0];
-        const humanName = namePart
-            .replace(/-/g, ' ')
-            .replace(/\b\w/g, c => c.toUpperCase())
-            .trim();
+        const humanName = cleanTitle(namePart);
 
         return {
             name: humanName || 'Event Details',
-            date: dateStr // Keep as string string to avoid timezone shifts
+            date: dateStr
         };
     };
 
@@ -43,8 +50,8 @@ export default function EventDetailScreen() {
     const hasData = !!event;
 
     // Prefer Event data, fallback to ID parse
-    // Prefer Event data, fallback to ID parse
-    const titleText = hasData ? `${event.format} ${event.type}` : `${fallback.name}`;
+    const rawTitle = hasData ? `${event.format} ${event.type}` : `${fallback.name}`;
+    const titleText = cleanTitle(rawTitle);
 
     const isoDate = hasData
         ? new Date(event.date).toISOString().split('T')[0]
@@ -145,7 +152,7 @@ function DeckRow({ deck, eventId }: { deck: Deck; eventId: string }) {
     return (
         <Link href={`/deck/${deck.id}?eventId=${eventId}`} asChild>
             <Pressable className="flex-row items-center bg-[#1C1C1E] rounded-2xl px-4 py-4 mb-3 active:scale-98 transition-all shadow-sm">
-                <View className="mr-4 w-8 items-center justify-center">
+                <View className="mr-4 w-12 items-center justify-center">
                     <Text className="font-bold text-white text-lg">{deck.result || '-'}</Text>
                 </View>
                 <View className="flex-1">

@@ -61,8 +61,35 @@ export const MtgoService = {
 
             const data = JSON.parse(match[1]);
 
+            // Create a map of loginid -> rank
+            // We use two sources:
+            // 1. 'standings' (Swiss results, usually cover everyone)
+            // 2. 'final_rank' (Top 8 results, overwrites Swiss rank for playoffs)
+            const rankMap = new Map<string, number>();
+
+            if (data.standings && Array.isArray(data.standings)) {
+                data.standings.forEach((s: any) => {
+                    if (s.loginid && s.rank) {
+                        rankMap.set(String(s.loginid), parseInt(s.rank, 10));
+                    }
+                });
+            }
+
+            if (data.final_rank && Array.isArray(data.final_rank)) {
+                data.final_rank.forEach((r: any) => {
+                    if (r.loginid && r.rank) {
+                        rankMap.set(String(r.loginid), parseInt(r.rank, 10));
+                    }
+                });
+            }
+
+            // Clean weird MTGO naming (e.g. "CMODERN" -> "Modern")
+            if (data.format && typeof data.format === 'string') {
+                data.format = data.format.replace(/^c(modern|pioneer|standard|legacy|vintage|pauper)/i, '$1');
+            }
+
             // Map to our Deck type
-            const decks: Deck[] = (data.decklists || []).map((d: any) => {
+            const decks: Deck[] = (data.decklists || []).map((d: any, index: number) => {
                 const mainboard: Card[] = (d.main_deck || []).map((c: any) => ({
                     name: c.card_attributes.card_name,
                     quantity: parseInt(c.qty, 10),
@@ -75,21 +102,57 @@ export const MtgoService = {
 
                 // Handle wins/result format variation
                 let result = '';
-                if (d.wins && typeof d.wins === 'object') {
+                let rank = 0;
+                let cleanPlayer = d.player;
+
+                // Priority 1: Check if player name has "1st Place" info (Fallback)
+                const rankMatch = d.player.match(/(.*?)\s*\((\d+)(?:st|nd|rd|th)?\s+Place\)/i);
+
+                // Priority 2: Check explicit rank map (using loginid for precision)
+                // Note: d.loginid comes from the decklists object
+                const standingRank = rankMap.get(String(d.loginid));
+
+                if (rankMatch) {
+                    cleanPlayer = rankMatch[1];
+                    rank = parseInt(rankMatch[2], 10);
+                } else if (standingRank) {
+                    rank = standingRank;
+                }
+
+                if (rank > 0) {
+                    result = `${rank}${getOrdinal(rank)}`; // "1st", "20th"
+                }
+                else if (d.wins && typeof d.wins === 'object') {
                     result = `${d.wins.wins}-${d.wins.losses}`;
                 } else if (d.wins) {
                     result = `${d.wins} wins`;
+                } else if (id.toLowerCase().includes('challenge')) {
+                    // Fallback: If it's a Challenge and no explicit rank found, assume list order IS the rank
+                    // (But only provided we didn't find any standings data at all, to avoid partial matches)
+                    if (rankMap.size === 0) {
+                        rank = index + 1;
+                        result = `${rank}${getOrdinal(rank)}`;
+                    } else if (!rankMap.has(String(d.loginid))) {
+                        result = '-';
+                    }
                 }
 
                 return {
-                    id: `${id}-${d.player}`,
-                    player: d.player,
+                    id: `${id}-${cleanPlayer}`,
+                    player: cleanPlayer,
                     result,
                     mainboard,
                     sideboard,
-                    archetype: 'Unknown'
+                    archetype: 'Unknown',
+                    rank
                 };
             });
+
+            // If we parsed ranks, sort by rank
+            const hasRanks = decks.some(d => d.rank && d.rank > 0);
+            if (hasRanks) {
+                decks.sort((a, b) => (a.rank || 999) - (b.rank || 999));
+            }
 
             const parsedInfo = parseEventId(id);
 
@@ -112,7 +175,6 @@ export const MtgoService = {
             }
 
             return eventData;
-
         } catch (error) {
             console.error(`Error fetching event ${id}:`, error);
             return null;
@@ -152,4 +214,10 @@ function parseEventId(id: string) {
 
 function extractDateFromId(id: string): string | null {
     return parseEventId(id).date;
+}
+
+function getOrdinal(n: number): string {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return s[(v - 20) % 10] || s[v] || s[0];
 }

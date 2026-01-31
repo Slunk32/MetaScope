@@ -9,12 +9,18 @@ import 'react-native-reanimated';
 import '../global.css';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { LogBox } from 'react-native';
 import "../global.css";
 
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary
 } from 'expo-router';
+
+// Suppress known non-critical warnings
+LogBox.ignoreLogs([
+  "[Reanimated] Writing to `value` during component render",
+]);
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.

@@ -1,3 +1,4 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
@@ -47,12 +48,19 @@ export function EventCard({ id, name, format, date, type }: EventCardProps) {
 
                         {/* Left Info: Format & Type */}
                         <View className="justify-center gap-1">
+                            {/* Format */}
                             <Text className="text-2xl font-bold text-white tracking-tight">
                                 {format}
                             </Text>
-                            <Text className="text-sm font-medium text-zinc-400 uppercase tracking-wider">
-                                {type}
-                            </Text>
+                            {/* Type + Star */}
+                            <View className="flex-row items-center gap-1.5">
+                                <Text className="text-sm font-medium text-zinc-400 uppercase tracking-wider">
+                                    {type}
+                                </Text>
+                                {type.includes('Challenge') && (
+                                    <FontAwesome name="star" size={12} color="#FFBE0B" />
+                                )}
+                            </View>
                         </View>
 
                         {/* Right Info: Date & Count (Simulated) */}

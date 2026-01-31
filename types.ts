@@ -13,6 +13,7 @@ export interface Deck {
     mainboard: Card[];
     sideboard: Card[];
     url?: string;
+    rank?: number; // 1 for 1st place, etc.
 }
 
 export interface Event {
