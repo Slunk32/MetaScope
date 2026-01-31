@@ -105,8 +105,9 @@ export default function MetaScreen() {
                 <Text className="text-zinc-500 font-bold text-xs uppercase flex-1">Archetype</Text>
                 {selectedType === 'Challenge' ? (
                   <>
+                    {/* Clarified Headers */}
                     <Text className="text-zinc-500 font-bold text-xs uppercase w-16 text-center">Top 8</Text>
-                    <Text className="text-zinc-500 font-bold text-xs uppercase w-16 text-center">Meta %</Text>
+                    <Text className="text-zinc-500 font-bold text-xs uppercase w-16 text-center">Field</Text>
                   </>
                 ) : (
                   <>
@@ -120,16 +121,21 @@ export default function MetaScreen() {
               <View className="flex-row items-center bg-[#1C1C1E] p-4 rounded-xl mb-2">
                 <Text className="text-zinc-600 font-bold w-6">{index + 1}</Text>
                 <View className="flex-1">
-                  <Text className="text-white font-bold text-base">{item.name}</Text>
+                  <Text className="text-white font-bold text-base">
+                    {/* Rename Unknown -> Other */}
+                    {item.name === 'Unknown' ? 'Other' : item.name}
+                  </Text>
                 </View>
 
                 {selectedType === 'Challenge' ? (
                   <>
                     <View className="w-16 items-center">
+                      {/* Top 8 Stats */}
                       <Text className="text-[#FFBE0B] font-bold text-lg">{item.top8Count}</Text>
                       <Text className="text-zinc-500 text-xs">{(item.top8Share * 100).toFixed(0)}%</Text>
                     </View>
                     <View className="w-16 items-center">
+                      {/* Field Stats */}
                       <Text className="text-zinc-300 font-medium">{item.count}</Text>
                       <Text className="text-zinc-500 text-xs">{(item.metaShare * 100).toFixed(0)}%</Text>
                     </View>
