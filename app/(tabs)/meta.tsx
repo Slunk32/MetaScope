@@ -103,24 +103,50 @@ export default function MetaScreen() {
                 contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
                 ListHeaderComponent={
                   <View className="flex-row justify-between mb-2 px-2">
-                    <Text className="text-zinc-500 font-bold text-xs uppercase w-6">#</Text>
+                    {/* Rank Column - Widened for Trend */}
+                    <Text className="text-zinc-500 font-bold text-xs uppercase w-12 text-center">#</Text>
                     <Text className="text-zinc-500 font-bold text-xs uppercase flex-1">Archetype</Text>
                     {selectedType === 'Challenge' ? (
                       <>
-                        <Text className="text-zinc-500 font-bold text-xs uppercase w-16 text-center">Top 8</Text>
-                        <Text className="text-zinc-500 font-bold text-xs uppercase w-16 text-center">Overall</Text>
+                        <View className="w-16 items-center">
+                          <Text className="text-zinc-500 font-bold text-xs uppercase">Top 8</Text>
+                        </View>
+                        <View className="w-16 items-center">
+                          <Text className="text-zinc-500 font-bold text-xs uppercase">Overall</Text>
+                        </View>
                       </>
                     ) : (
                       <>
-                        <Text className="text-zinc-500 font-bold text-xs uppercase w-16 text-center">Count</Text>
-                        <Text className="text-zinc-500 font-bold text-xs uppercase w-16 text-center">Freq</Text>
+                        <View className="w-16 items-center">
+                          <Text className="text-zinc-500 font-bold text-xs uppercase">Count</Text>
+                        </View>
+                        <View className="w-16 items-center">
+                          <Text className="text-zinc-500 font-bold text-xs uppercase">Freq</Text>
+                        </View>
                       </>
                     )}
                   </View>
                 }
                 renderItem={({ item, index }) => (
                   <View className="flex-row items-center bg-[#1C1C1E] p-4 rounded-xl mb-2">
-                    <Text className="text-zinc-600 font-bold w-6">{index + 1}</Text>
+                    {/* Rank & Trend */}
+                    <View className="w-12 items-center justify-center mr-2">
+                      <Text className="text-zinc-600 font-bold text-lg leading-6">{index + 1}</Text>
+                      {/* Trend Indicator */}
+                      {item.rankDiff > 0 && (
+                        <View className="flex-row items-center">
+                          <FontAwesome name="caret-up" size={12} color="#4ade80" />
+                          <Text className="text-[#4ade80] text-[10px] font-bold ml-1">{Math.abs(item.rankDiff)}</Text>
+                        </View>
+                      )}
+                      {item.rankDiff < 0 && (
+                        <View className="flex-row items-center">
+                          <FontAwesome name="caret-down" size={12} color="#f87171" />
+                          <Text className="text-[#f87171] text-[10px] font-bold ml-1">{Math.abs(item.rankDiff)}</Text>
+                        </View>
+                      )}
+                    </View>
+
                     <View className="flex-1">
                       <Text className="text-white font-bold text-base">
                         {item.name === 'Unknown' ? 'Other' : item.name}
