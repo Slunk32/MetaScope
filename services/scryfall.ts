@@ -28,5 +28,33 @@ export const ScryfallService = {
             console.warn(`Error fetching image for ${cardName}:`, error);
             return null;
         }
+    },
+
+    // Batch fetch card details for sorting
+    async getCards(cardNames: string[]): Promise<any[]> {
+        // Scryfall collection endpoint limit is 75. We might need to chunk if a deck is huge, 
+        // but unique cards in a deck rarely exceed 75. 
+        // Just in case, we'll slice to 75 for MVP.
+        const uniqueNames = [...new Set(cardNames)].slice(0, 75);
+
+        try {
+            const response = await fetch(`${SCRYFALL_API}/cards/collection`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    identifiers: uniqueNames.map(name => ({ name }))
+                })
+            });
+
+            if (!response.ok) return [];
+
+            const data = await response.json();
+            return data.data || [];
+        } catch (error) {
+            console.error('Error fetching batch cards:', error);
+            return [];
+        }
     }
 };

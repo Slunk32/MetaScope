@@ -1,84 +1,67 @@
 import { Card, Deck, Event } from '@/types';
 import { ArchetypeService } from './archetype';
 
-// For dev: Use your machine's IP (e.g. 192.168.1.X) or:
-// Android Emulator: 10.0.2.2
-// iOS Simulator: localhost
-// We'll trust the user to set this or use an environment variable later.
-// For now, let's stick to direct MTGO fetching until the backend is actually deployed, 
-// OR we can try to hit the local backend if the user runs it.
-// The user asked to "set up the server". 
-// To allow them to test the server, we should probably toggle this.
-
-// FALLBACK: Reverted to Direct Scraping temporarily while debugging Proxy 404
-const BASE_URL = 'https://www.mtgo.com';
-// const BASE_URL = 'https://meta-scope-eight.vercel.app/api'; 
+const MTGO_URL = 'https://www.mtgo.com';
 
 export const MtgoService = {
     async getLatestEvents(): Promise<Event[]> {
         try {
-            console.log('Fetching latest events from MTGO (Direct)...');
-            const response = await fetch(`${BASE_URL}/decklists`);
-            const html = await response.text();
-
-            const events: Event[] = [];
-
-            // Regex (Restored)
-            const linkRegex = /<a[^>]*href="([^"]*\/decklist\/[^"]*)"[^>]*>([\s\S]*?)<\/a>/gi;
-
-            let match;
-            while ((match = linkRegex.exec(html)) !== null) {
-                const href = match[1];
-                const innerHtml = match[2];
-
-                const titleMatch = /<h3[^>]*>(.*?)<\/h3>/i.exec(innerHtml);
-                const title = titleMatch ? titleMatch[1].trim() : innerHtml.replace(/<[^>]+>/g, '').trim();
-
-                const dateMatch = /<time[^>]+datetime="([^"]+)"/.exec(innerHtml);
-                const date = dateMatch ? dateMatch[1] : new Date().toISOString();
-
-                if (href && title) {
-                    const id = href.split('/').pop() || '';
-                    if (!id) continue;
-
-                    const format = title.split(' ')[0] || 'Unknown';
-                    const type = title.includes('Challenge') ? 'Challenge'
-                        : title.includes('League') ? 'League'
-                            : title.includes('Showcase') ? 'Showcase'
-                                : 'Tournament';
-
-                    events.push({
-                        id,
-                        name: title,
-                        date,
-                        format,
-                        type,
-                        decks: [],
-                    });
-                }
-            }
-            return events;
+            // Using backend for index 
+            const response = await fetch(`https://meta-scope-backend.vercel.app/api/events?_cb=${Date.now()}`);
+            if (!response.ok) throw new Error('Backend network response was not ok');
+            const data: Event[] = await response.json();
+            return data.map(e => ({
+                ...e,
+                date: extractDateFromId(e.id) || e.date
+            }));
         } catch (error) {
-            console.error('Error fetching latest events:', error);
+            console.error('Error fetching latest events from backend:', error);
             return [];
         }
     },
 
     async getEvent(id: string): Promise<Event | null> {
         try {
-            const response = await fetch(`${BASE_URL}/decklist/${id}`);
-            const html = await response.text();
+            console.log(`Fetching event ${id} directly from MTGO...`);
+            const url = `${MTGO_URL}/decklist/${id}`;
 
-            // Extract JSON data from window.MTGO.decklists.data
-            const jsonMatch = html.match(/window\.MTGO\.decklists\.data\s*=\s*({.*?});/s);
+            const response = await fetch(url, {
+                headers: {
+                    // Full browser emulation to avoid "partial content" or blocks
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'Referer': 'https://www.mtgo.com/decklists',
+                    'Cache-Control': 'max-age=0',
+                    'Connection': 'keep-alive',
+                    'Sec-Fetch-Dest': 'document',
+                    'Sec-Fetch-Mode': 'navigate',
+                    'Sec-Fetch-Site': 'same-origin',
+                    'Sec-Fetch-User': '?1',
+                    'Upgrade-Insecure-Requests': '1',
+                }
+            });
 
-            if (!jsonMatch || !jsonMatch[1]) {
-                console.error('Could not find decklist JSON data');
+            if (!response.ok) {
+                console.error(`MTGO returned status ${response.status}`);
                 return null;
             }
 
-            const data = JSON.parse(jsonMatch[1]);
+            const html = await response.text();
 
+            // Regex to find window.MTGO.decklists.data
+            const regex = /window\.MTGO\.decklists\.data\s*=\s*({[\s\S]*?});/;
+            const match = html.match(regex);
+
+            if (!match) {
+                console.error(`Failed to parse MTGO data. content-length: ${html.length}`);
+                console.error('HTML Preview:', html.substring(0, 200));
+                return null;
+            }
+
+            const data = JSON.parse(match[1]);
+
+            // Map to our Deck type
             const decks: Deck[] = (data.decklists || []).map((d: any) => {
                 const mainboard: Card[] = (d.main_deck || []).map((c: any) => ({
                     name: c.card_attributes.card_name,
@@ -90,29 +73,45 @@ export const MtgoService = {
                     quantity: parseInt(c.qty, 10),
                 }));
 
-                const rawDeck: Deck = {
-                    id: d.loginid || d.player,
+                // Handle wins/result format variation
+                let result = '';
+                if (d.wins && typeof d.wins === 'object') {
+                    result = `${d.wins.wins}-${d.wins.losses}`;
+                } else if (d.wins) {
+                    result = `${d.wins} wins`;
+                }
+
+                return {
+                    id: `${id}-${d.player}`,
                     player: d.player,
-                    result: d.wins ? `${d.wins} wins` : '', // MTGO JSON sometimes has wins/losses or rank
+                    result,
                     mainboard,
                     sideboard,
+                    archetype: 'Unknown'
                 };
-
-                // Classify
-                const format = data.format || 'Standard'; // Fallback
-                rawDeck.archetype = ArchetypeService.classify(rawDeck, format);
-
-                return rawDeck;
             });
 
-            return {
-                id,
-                name: data.description || 'Unknown Event',
-                date: data.starttime || new Date().toISOString(),
-                format: data.format || 'Unknown',
-                type: data.type || 'Tournament',
+            const parsedInfo = parseEventId(id);
+
+            const eventData: Event = {
+                id: id,
+                name: data.description || 'Event',
+                date: parsedInfo.date || data.starttime || new Date().toISOString(),
+                format: data.format || parsedInfo.format,
+                type: data.type || parsedInfo.type,
                 decks,
             };
+
+            // Client-side enrichment
+            if (eventData && eventData.decks) {
+                eventData.decks.forEach((d: Deck) => {
+                    if (!d.archetype || d.archetype === 'Unknown') {
+                        d.archetype = ArchetypeService.classify(d, eventData.format);
+                    }
+                });
+            }
+
+            return eventData;
 
         } catch (error) {
             console.error(`Error fetching event ${id}:`, error);
@@ -120,3 +119,37 @@ export const MtgoService = {
         }
     }
 };
+
+function parseEventId(id: string) {
+    if (!id) return { format: 'Unknown', type: 'Event', date: null };
+
+    // Regex to capture parts: (format)-(type)-(date)-(id)
+    // Example: modern-challenge-32-2026-01-3012831718
+    // Extract Date: YYYY-MM-DD
+    const dateMatch = id.match(/(\d{4}-\d{2}-\d{2})/);
+    const date = dateMatch ? dateMatch[0] : null;
+
+    // Remove numbers/date from end to get the name part
+    const namePart = id.split(/\d{4}-\d{2}-\d{2}/)[0].replace(/-$/, '');
+    // e.g. "modern-challenge-32" (sometimes has number suffix like 32 or 64)
+    // or "legacy-league"
+
+    const parts = namePart.split('-');
+
+    // Capitalize helper
+    const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+    // Format is usually first part
+    const format = cap(parts[0]);
+
+    // Type is usually second part (or rest)
+    // If namePart is "modern-challenge-32", format=Modern, type=Challenge 32?
+    // Let's just join the rest
+    const type = parts.slice(1).map(cap).join(' ');
+
+    return { format: format || 'Unknown', type: type || 'Event', date };
+}
+
+function extractDateFromId(id: string): string | null {
+    return parseEventId(id).date;
+}

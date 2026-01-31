@@ -1,11 +1,13 @@
 import { MtgoService } from '@/services/mtgo';
 import { Deck } from '@/types';
+import FontAwesome from '@expo/vector-icons/FontAwesome'; // Import explicitly for DeckRow
 import { useQuery } from '@tanstack/react-query';
-import { Link, Stack, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
+import { Link, Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { ActivityIndicator, FlatList, Pressable, Text, TouchableOpacity, View } from 'react-native';
 
 export default function EventDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
+    const router = useRouter();
 
     const { data: event, isLoading, error } = useQuery({
         queryKey: ['event', id],
@@ -13,41 +15,124 @@ export default function EventDetailScreen() {
         enabled: !!id,
     });
 
+    // Helper to parse info from ID if API data is missing or generic
+    const parseInfoFromId = (eventId: string | undefined) => {
+        if (!eventId) return { name: 'Event Details', date: '' };
+
+        // Example: modern-challenge-32-2026-01-3012831718
+        // Extract Date: 2026-01-30 (regex for YYYY-MM-DD)
+        const dateMatch = eventId.match(/(\d{4}-\d{2}-\d{2})/);
+        const dateStr = dateMatch ? dateMatch[0] : '';
+
+        // Extract Format/Name: "modern-challenge" -> "Modern Challenge"
+        // Remove date and numbers from end
+        const namePart = eventId.split(/\d{4}-\d{2}-\d{2}/)[0];
+        const humanName = namePart
+            .replace(/-/g, ' ')
+            .replace(/\b\w/g, c => c.toUpperCase())
+            .trim();
+
+        return {
+            name: humanName || 'Event Details',
+            date: dateStr // Keep as string string to avoid timezone shifts
+        };
+    };
+
+    // Immediate sync parsing for Header Title (before data loads)
+    const fallback = parseInfoFromId(id);
+    const hasData = !!event;
+
+    // Prefer Event data, fallback to ID parse
+    // Prefer Event data, fallback to ID parse
+    const titleText = hasData ? `${event.format} ${event.type}` : `${fallback.name}`;
+
+    const isoDate = hasData
+        ? new Date(event.date).toISOString().split('T')[0]
+        : fallback.date || '';
+
+    // Format YYYY-MM-DD to "MMM Do YYYY" (e.g. "Jan 31st 2025")
+    const formatDate = (dateStr: string) => {
+        if (!dateStr || !dateStr.includes('-')) return dateStr;
+        const [year, month, day] = dateStr.split('-');
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const dayNum = parseInt(day, 10);
+
+        let suffix = 'th';
+        if (dayNum % 10 === 1 && dayNum !== 11) suffix = 'st';
+        else if (dayNum % 10 === 2 && dayNum !== 12) suffix = 'nd';
+        else if (dayNum % 10 === 3 && dayNum !== 13) suffix = 'rd';
+
+        return `${months[parseInt(month, 10) - 1]} ${dayNum}${suffix} ${year}`;
+    };
+
+    const dateText = formatDate(isoDate);
+
+    // Stack config MUST be rendered before any early returns for it to apply during loading
+    const stackConfig = (
+        <Stack.Screen
+            options={{
+                headerTitle: () => (
+                    <View className="items-center">
+                        <Text className="text-white font-bold text-xl tracking-tight">{titleText}</Text>
+                    </View>
+                ),
+                headerStyle: { backgroundColor: '#121212' },
+                headerTintColor: 'white',
+                headerShadowVisible: false,
+                headerLeft: () => (
+                    <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center">
+                        <FontAwesome name="chevron-left" size={20} color="#FFBE0B" />
+                    </TouchableOpacity>
+                ),
+                headerBackVisible: false,
+                // @ts-ignore: 'animation' is valid in Native Stack but missing in Expo Router types sometimes
+                animation: 'none',
+            }}
+        />
+    );
+
     if (isLoading) {
         return (
-            <View className="flex-1 items-center justify-center bg-white dark:bg-black">
-                <ActivityIndicator size="large" />
+            <View className="flex-1 bg-[#121212]">
+                {stackConfig}
+                <View className="flex-1 items-center justify-center">
+                    <ActivityIndicator size="large" color="#FFBE0B" />
+                </View>
             </View>
         );
     }
 
     if (error || !event) {
         return (
-            <View className="flex-1 items-center justify-center bg-white dark:bg-black">
-                <Text className="text-red-500">Error loading event details</Text>
+            <View className="flex-1 bg-[#121212]">
+                {stackConfig}
+                <View className="flex-1 items-center justify-center">
+                    <Text className="text-red-500">Error loading event details</Text>
+                </View>
             </View>
         );
     }
 
     return (
-        <View className="flex-1 bg-white dark:bg-black">
-            <Stack.Screen options={{ title: event.name }} />
+        <View className="flex-1 bg-[#121212]">
+            {stackConfig}
 
-            <View className="border-b border-gray-200 p-4 dark:border-gray-800">
-                <Text className="text-2xl font-bold text-black dark:text-white">{event.name}</Text>
-                <Text className="text-gray-500 dark:text-gray-400">
-                    {event.format} • {new Date(event.date).toLocaleDateString()}
-                </Text>
-                <Text className="mt-2 text-sm text-gray-400">
-                    {event.decks.length} Decks Reported
-                </Text>
+            {/* Solid Background */}
+            <View className="absolute left-0 right-0 top-0 h-full bg-[#121212]" />
+
+            <View className="px-4 py-4 z-10 bg-[#121212]">
+                <View className="flex-row items-baseline justify-between">
+                    <Text className="text-lg text-zinc-400 font-medium">
+                        {dateText}
+                    </Text>
+                </View>
             </View>
 
             <FlatList
                 data={event.decks}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => <DeckRow deck={item} eventId={event.id} />}
-                contentContainerStyle={{ paddingBottom: 20 }}
+                contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
             />
         </View>
     );
@@ -59,25 +144,25 @@ function DeckRow({ deck, eventId }: { deck: Deck; eventId: string }) {
 
     return (
         <Link href={`/deck/${deck.id}?eventId=${eventId}`} asChild>
-            <Pressable className="flex-row items-center border-b border-gray-100 px-4 py-3 active:bg-gray-50 dark:border-gray-800 dark:active:bg-zinc-900">
-                <View className="mr-3 w-8 items-center justify-center">
-                    <Text className="font-bold text-gray-900 dark:text-white">{deck.result || '-'}</Text>
+            <Pressable className="flex-row items-center bg-[#1C1C1E] rounded-2xl px-4 py-4 mb-3 active:scale-98 transition-all shadow-sm">
+                <View className="mr-4 w-8 items-center justify-center">
+                    <Text className="font-bold text-white text-lg">{deck.result || '-'}</Text>
                 </View>
                 <View className="flex-1">
-                    <Text className="font-semibold text-black dark:text-white">
+                    <Text className="font-bold text-white text-base">
                         {deck.player}
                     </Text>
-                    <Text className="text-sm text-gray-500 dark:text-gray-400">
+                    <Text className="text-sm text-zinc-400 font-medium">
                         {deck.archetype || 'Unclassified'}
                     </Text>
                 </View>
                 <View className="flex-row gap-1">
-                    {colors.map(c => (
-                        <View key={c} className={`h-3 w-3 rounded-full ${getColorClass(c)}`} />
+                    {colors.map((c, i) => (
+                        <View key={i} className={`h-3 w-3 rounded-full ${getColorClass(c)}`} />
                     ))}
                 </View>
                 <View className="ml-2">
-                    <Text className="text-gray-400 dark:text-gray-600">›</Text>
+                    <FontAwesome name="chevron-right" size={12} color="#52525b" />
                 </View>
             </Pressable>
         </Link>
@@ -85,20 +170,12 @@ function DeckRow({ deck, eventId }: { deck: Deck; eventId: string }) {
 }
 
 // Helper to guess colors from card costs (very basic)
-function inferColors(deck: Deck): string[] {
-    const mainboard = deck.mainboard;
-    const colors = new Set<string>();
+// Need to update types/backend to actually get this data
 
-    // Check lands or known cards. For MVP, we can't easily parse mana cost strings without a DB.
-    // But MTGO JSON actually GIVES us "card_attributes.colors"!
-    // Wait, the API response I saw earlier had `colors: ["COLOR_RED"]` etc.
-    // I didn't map that in `types.ts` Card.
-    // I should probably update `types.ts` and `mtgo.ts` to include color info if I want it.
-    // For now, return empty or mock.
-    return [];
+function inferColors(deck: Deck): string[] {
+    return []; // MVP: No color data available in frontend yet
 }
 
 function getColorClass(color: string) {
-    // Map WUBRG to tailwind classes
     return 'bg-gray-400';
 }

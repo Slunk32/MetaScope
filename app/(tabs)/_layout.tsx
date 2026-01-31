@@ -1,50 +1,48 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
+import { Tabs } from 'expo-router';
 import React from 'react';
-import { Pressable } from 'react-native';
-
+import { View } from 'react-native';
 
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
-import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
-
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
-}
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  // We force the dark aesthetic now
+  const activeTint = '#FFBE0B';
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
+        tabBarActiveTintColor: activeTint,
+        tabBarInactiveTintColor: '#52525b', // Zinc 600
+        tabBarStyle: {
+          backgroundColor: '#09090b', // Zinc 950/Black
+          borderTopWidth: 0,
+          height: 80,
+          paddingTop: 12,
+          paddingBottom: 25, // Adjust for iOS Safe Area implicitly or explicitly
+          shadowOpacity: 0,
+          elevation: 0,
+        },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          marginTop: 4,
+          fontWeight: '600',
+        },
         headerShown: useClientOnlyValue(false, true),
+        // @ts-ignore
+        animation: 'none',
+        // @ts-ignore
+        tabBarAnimationEnabled: false,
       }}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Latest',
-          tabBarIcon: ({ color }) => <TabBarIcon name="list" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <View className={`items-center justify-center w-12 h-10 rounded-xl ${focused ? 'bg-[#FFBE0B]' : 'bg-transparent'}`}>
+              <FontAwesome name="list" size={18} color={focused ? '#000000' : color} />
+            </View>
           ),
         }}
       />
@@ -52,7 +50,12 @@ export default function TabLayout() {
         name="meta"
         options={{
           title: 'Meta',
-          tabBarIcon: ({ color }) => <TabBarIcon name="bar-chart" color={color} />,
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <View className={`items-center justify-center w-12 h-10 rounded-xl ${focused ? 'bg-[#FFBE0B]' : 'bg-transparent'}`}>
+              <FontAwesome name="bar-chart" size={18} color={focused ? '#000000' : color} />
+            </View>
+          ),
         }}
       />
     </Tabs>
