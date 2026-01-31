@@ -165,106 +165,76 @@ export default function EventDetailScreen() {
             <View className="flex-1 bg-[#121212]">
                 {stackConfig}
                 <View className="flex-1 items-center justify-center">
-                    <Text className="text-red-500">Error loading event details</Text>
+                    <View className="flex-1 items-center justify-center px-8">
+                        <Text className="text-red-500 font-bold text-lg mb-2">Unavailable</Text>
+                        <Text className="text-zinc-500 text-center">
+                            {error instanceof Error ? error.message : 'Error loading event details'}
+                        </Text>
+                    </View>
                 </View>
-            </View>
-        );
+                );
     }
 
-    return (
-        <View className="flex-1 bg-[#121212]">
-            {stackConfig}
-            {/* Solid Background */}
-            <View className="absolute left-0 right-0 top-0 h-full bg-[#121212]" />
+                return (
+                <View className="flex-1 bg-[#121212]">
+                    {stackConfig}
+                    {/* Solid Background */}
+                    <View className="absolute left-0 right-0 top-0 h-full bg-[#121212]" />
 
-            {/* Header Info */}
-            <View className="px-4 py-4 bg-[#121212]">
-                <View className="flex-row items-baseline justify-between">
-                    <Text className="text-lg text-zinc-400 font-medium">
-                        {dateText}
-                    </Text>
-                </View>
-            </View>
+                    {/* Header Info */}
+                    <View className="px-4 py-4 bg-[#121212]">
+                        <View className="flex-row items-baseline justify-between">
+                            <Text className="text-lg text-zinc-400 font-medium">
+                                {dateText}
+                            </Text>
+                        </View>
+                    </View>
 
-            {/* Tab Selector */}
-            <View className="flex-row border-b border-zinc-800 mb-4 mx-4">
-                <Pressable
-                    onPress={() => setActiveTab('standings')}
-                    className={`pb-3 mr-6 ${activeTab === 'standings' ? 'border-b-2 border-[#FFBE0B]' : ''}`}>
-                    <Text className={`text-base font-bold ${activeTab === 'standings' ? 'text-[#FFBE0B]' : 'text-zinc-500'}`}>
-                        Standings
-                    </Text>
-                </Pressable>
-                <Pressable
-                    onPress={() => setActiveTab('meta')}
-                    className={`pb-3 mr-6 ${activeTab === 'meta' ? 'border-b-2 border-[#FFBE0B]' : ''}`}>
-                    <Text className={`text-base font-bold ${activeTab === 'meta' ? 'text-[#FFBE0B]' : 'text-zinc-500'}`}>
-                        Meta Breakdown
-                    </Text>
-                </Pressable>
-                <Pressable
-                    onPress={() => setActiveTab('sideboard')}
-                    className={`pb-3 ${activeTab === 'sideboard' ? 'border-b-2 border-[#FFBE0B]' : ''}`}>
-                    <Text className={`text-base font-bold ${activeTab === 'sideboard' ? 'text-[#FFBE0B]' : 'text-zinc-500'}`}>
-                        Sideboard Trends
-                    </Text>
-                </Pressable>
-            </View>
+                    {/* Tab Selector */}
+                    <View className="flex-row border-b border-zinc-800 mb-4 mx-4">
+                        <Pressable
+                            onPress={() => setActiveTab('standings')}
+                            className={`pb-3 mr-6 ${activeTab === 'standings' ? 'border-b-2 border-[#FFBE0B]' : ''}`}>
+                            <Text className={`text-base font-bold ${activeTab === 'standings' ? 'text-[#FFBE0B]' : 'text-zinc-500'}`}>
+                                Standings
+                            </Text>
+                        </Pressable>
+                        <Pressable
+                            onPress={() => setActiveTab('meta')}
+                            className={`pb-3 mr-6 ${activeTab === 'meta' ? 'border-b-2 border-[#FFBE0B]' : ''}`}>
+                            <Text className={`text-base font-bold ${activeTab === 'meta' ? 'text-[#FFBE0B]' : 'text-zinc-500'}`}>
+                                Meta Breakdown
+                            </Text>
+                        </Pressable>
+                        <Pressable
+                            onPress={() => setActiveTab('sideboard')}
+                            className={`pb-3 ${activeTab === 'sideboard' ? 'border-b-2 border-[#FFBE0B]' : ''}`}>
+                            <Text className={`text-base font-bold ${activeTab === 'sideboard' ? 'text-[#FFBE0B]' : 'text-zinc-500'}`}>
+                                Sideboard Trends
+                            </Text>
+                        </Pressable>
+                    </View>
 
-            {/* Content Area */}
-            {activeTab === 'standings' ? (
-                <FlatList
-                    data={event.decks}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => <DeckRow deck={item} eventId={event.id} />}
-                    contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
-                />
-            ) : activeTab === 'meta' ? (
-                <View className="flex-1 px-4">
-                    <FlatList
-                        data={[]}
-                        renderItem={({ item }) => null /* dummy */}
-                        ListHeaderComponent={
-                            <View className="pb-8">
-                                {stats.isLeague ? (
-                                    /* League View: Single Consolidated List */
-                                    <View className="bg-[#1C1C1E] p-4 rounded-2xl">
-                                        <Text className="text-xl font-bold text-white mb-4">🏆 League Meta (5-0)</Text>
-                                        {stats.all.map(([arch, count]) => (
-                                            <View key={arch} className="flex-row items-center justify-between py-2 border-b border-zinc-800 last:border-0">
-                                                <Text className="text-zinc-200 font-medium text-base">{arch}</Text>
-                                                <View className="bg-[#2C2C2E] px-3 py-1 rounded-full">
-                                                    <Text className="text-white font-bold">{count}</Text>
-                                                </View>
-                                            </View>
-                                        ))}
-                                    </View>
-                                ) : (
-                                    /* Challenge View: Top 8 Split */
-                                    <>
-                                        {/* Top 8 Section */}
-                                        {stats.top8.length > 0 && (
-                                            <View className="mb-6 bg-[#1C1C1E] p-4 rounded-2xl">
-                                                <Text className="text-xl font-bold text-white mb-4">🏆 Top 8 Meta</Text>
-                                                {stats.top8.map(([arch, count]) => (
-                                                    <View key={arch} className="flex-row items-center justify-between py-2 border-b border-zinc-800 last:border-0">
-                                                        <View className="flex-row items-center">
-                                                            {/* Removed rank numbering */}
-                                                            <Text className="text-zinc-200 font-medium text-base">{arch}</Text>
-                                                        </View>
-                                                        <View className="bg-[#2C2C2E] px-3 py-1 rounded-full">
-                                                            <Text className="text-[#FFBE0B] font-bold">{count}</Text>
-                                                        </View>
-                                                    </View>
-                                                ))}
-                                            </View>
-                                        )}
-
-                                        {/* Rest of Field Section */}
-                                        {stats.rest.length > 0 && (
+                    {/* Content Area */}
+                    {activeTab === 'standings' ? (
+                        <FlatList
+                            data={event.decks}
+                            keyExtractor={(item) => item.id}
+                            renderItem={({ item }) => <DeckRow deck={item} eventId={event.id} />}
+                            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
+                        />
+                    ) : activeTab === 'meta' ? (
+                        <View className="flex-1 px-4">
+                            <FlatList
+                                data={[]}
+                                renderItem={({ item }) => null /* dummy */}
+                                ListHeaderComponent={
+                                    <View className="pb-8">
+                                        {stats.isLeague ? (
+                                            /* League View: Single Consolidated List */
                                             <View className="bg-[#1C1C1E] p-4 rounded-2xl">
-                                                <Text className="text-xl font-bold text-white mb-4">📊 Rest of Field</Text>
-                                                {stats.rest.map(([arch, count]) => (
+                                                <Text className="text-xl font-bold text-white mb-4">🏆 League Meta (5-0)</Text>
+                                                {stats.all.map(([arch, count]) => (
                                                     <View key={arch} className="flex-row items-center justify-between py-2 border-b border-zinc-800 last:border-0">
                                                         <Text className="text-zinc-200 font-medium text-base">{arch}</Text>
                                                         <View className="bg-[#2C2C2E] px-3 py-1 rounded-full">
@@ -273,85 +243,119 @@ export default function EventDetailScreen() {
                                                     </View>
                                                 ))}
                                             </View>
+                                        ) : (
+                                            /* Challenge View: Top 8 Split */
+                                            <>
+                                                {/* Top 8 Section */}
+                                                {stats.top8.length > 0 && (
+                                                    <View className="mb-6 bg-[#1C1C1E] p-4 rounded-2xl">
+                                                        <Text className="text-xl font-bold text-white mb-4">🏆 Top 8 Meta</Text>
+                                                        {stats.top8.map(([arch, count]) => (
+                                                            <View key={arch} className="flex-row items-center justify-between py-2 border-b border-zinc-800 last:border-0">
+                                                                <View className="flex-row items-center">
+                                                                    {/* Removed rank numbering */}
+                                                                    <Text className="text-zinc-200 font-medium text-base">{arch}</Text>
+                                                                </View>
+                                                                <View className="bg-[#2C2C2E] px-3 py-1 rounded-full">
+                                                                    <Text className="text-[#FFBE0B] font-bold">{count}</Text>
+                                                                </View>
+                                                            </View>
+                                                        ))}
+                                                    </View>
+                                                )}
+
+                                                {/* Rest of Field Section */}
+                                                {stats.rest.length > 0 && (
+                                                    <View className="bg-[#1C1C1E] p-4 rounded-2xl">
+                                                        <Text className="text-xl font-bold text-white mb-4">📊 Rest of Field</Text>
+                                                        {stats.rest.map(([arch, count]) => (
+                                                            <View key={arch} className="flex-row items-center justify-between py-2 border-b border-zinc-800 last:border-0">
+                                                                <Text className="text-zinc-200 font-medium text-base">{arch}</Text>
+                                                                <View className="bg-[#2C2C2E] px-3 py-1 rounded-full">
+                                                                    <Text className="text-white font-bold">{count}</Text>
+                                                                </View>
+                                                            </View>
+                                                        ))}
+                                                    </View>
+                                                )}
+                                            </>
                                         )}
-                                    </>
-                                )}
-                            </View>
-                        }
-                    />
-                </View>
-            ) : (
-                /* Sideboard Frequency Tab */
-                <View className="flex-1 px-4">
-                    <FlatList
-                        data={[]}
-                        renderItem={({ item }) => null /* dummy */}
-                        ListHeaderComponent={
-                            <View className="bg-[#1C1C1E] p-4 rounded-2xl mb-8">
-                                <Text className="text-xl font-bold text-white mb-4">🛡️ Sideboard Trends</Text>
-                                <Text className="text-zinc-500 mb-4 italic">
-                                    {stats.isLeague
-                                        ? "Most played cards in this day's league."
-                                        : "Most played cards in sideboards for this event."}
-                                </Text>
-                                {stats.sideboard.map(([card, count], index) => (
-                                    <View key={card} className="flex-row items-center justify-between py-3 border-b border-zinc-800 last:border-0">
-                                        <View className="flex-row items-center flex-1">
-                                            <Text className="text-zinc-500 w-6 font-bold mr-2">{index + 1}.</Text>
-                                            <Text className="text-zinc-200 font-medium text-base flex-1">{card}</Text>
-                                        </View>
-                                        <View className="bg-[#2C2C2E] px-3 py-1 rounded-full">
-                                            <Text className="text-white font-bold">{count}</Text>
-                                        </View>
                                     </View>
-                                ))}
-                            </View>
-                        }
-                    />
+                                }
+                            />
+                        </View>
+                    ) : (
+                        /* Sideboard Frequency Tab */
+                        <View className="flex-1 px-4">
+                            <FlatList
+                                data={[]}
+                                renderItem={({ item }) => null /* dummy */}
+                                ListHeaderComponent={
+                                    <View className="bg-[#1C1C1E] p-4 rounded-2xl mb-8">
+                                        <Text className="text-xl font-bold text-white mb-4">🛡️ Sideboard Trends</Text>
+                                        <Text className="text-zinc-500 mb-4 italic">
+                                            {stats.isLeague
+                                                ? "Most played cards in this day's league."
+                                                : "Most played cards in sideboards for this event."}
+                                        </Text>
+                                        {stats.sideboard.map(([card, count], index) => (
+                                            <View key={card} className="flex-row items-center justify-between py-3 border-b border-zinc-800 last:border-0">
+                                                <View className="flex-row items-center flex-1">
+                                                    <Text className="text-zinc-500 w-6 font-bold mr-2">{index + 1}.</Text>
+                                                    <Text className="text-zinc-200 font-medium text-base flex-1">{card}</Text>
+                                                </View>
+                                                <View className="bg-[#2C2C2E] px-3 py-1 rounded-full">
+                                                    <Text className="text-white font-bold">{count}</Text>
+                                                </View>
+                                            </View>
+                                        ))}
+                                    </View>
+                                }
+                            />
+                        </View>
+                    )}
                 </View>
-            )}
-        </View>
-    );
+                );
 }
 
-function DeckRow({ deck, eventId }: { deck: Deck; eventId: string }) {
+                function DeckRow({deck, eventId}: {deck: Deck; eventId: string }) {
     // Simple color inference for MVP visual
     const colors = inferColors(deck);
 
-    return (
-        <Link href={`/deck/${deck.id}?eventId=${eventId}`} asChild>
-            <Pressable className="flex-row items-center bg-[#1C1C1E] rounded-2xl px-4 py-4 mb-3 active:scale-98 transition-all shadow-sm">
-                <View className="mr-4 w-12 items-center justify-center">
-                    <Text className="font-bold text-white text-lg">{deck.result || '-'}</Text>
-                </View>
-                <View className="flex-1">
-                    <Text className="font-bold text-white text-base">
-                        {deck.player}
-                    </Text>
-                    <Text className="text-sm text-zinc-400 font-medium">
-                        {deck.archetype || 'Unclassified'}
-                    </Text>
-                </View>
-                <View className="flex-row gap-1">
-                    {colors.map((c, i) => (
-                        <View key={i} className={`h-3 w-3 rounded-full ${getColorClass(c)}`} />
-                    ))}
-                </View>
-                <View className="ml-2">
-                    <FontAwesome name="chevron-right" size={12} color="#52525b" />
-                </View>
-            </Pressable>
-        </Link>
-    );
+                return (
+                <Link href={`/deck/${deck.id}?eventId=${eventId}`} asChild>
+                    <Pressable className="flex-row items-center bg-[#1C1C1E] rounded-2xl px-4 py-4 mb-3 active:scale-98 transition-all shadow-sm">
+                        <View className="mr-4 w-12 items-center justify-center">
+                            <Text className="font-bold text-white text-lg">{deck.result || '-'}</Text>
+                        </View>
+                        <View className="flex-1">
+                            <Text className="font-bold text-white text-base">
+                                {deck.player}
+                            </Text>
+                            <Text className="text-sm text-zinc-400 font-medium">
+                                {deck.archetype || 'Unclassified'}
+                            </Text>
+                        </View>
+                        <View className="flex-row gap-1">
+                            {colors.map((c, i) => (
+                                <View key={i} className={`h-3 w-3 rounded-full ${getColorClass(c)}`} />
+                            ))}
+                        </View>
+                        <View className="ml-2">
+                            <FontAwesome name="chevron-right" size={12} color="#52525b" />
+                        </View>
+                    </Pressable>
+                </Link>
+                );
 }
 
-// Helper to guess colors from card costs (very basic)
-// Need to update types/backend to actually get this data
+                // Helper to guess colors from card costs (very basic)
+                // Need to update types/backend to actually get this data
 
-function inferColors(deck: Deck): string[] {
+                function inferColors(deck: Deck): string[] {
     return []; // MVP: No color data available in frontend yet
 }
 
-function getColorClass(color: string) {
+                function getColorClass(color: string) {
     return 'bg-gray-400';
 }

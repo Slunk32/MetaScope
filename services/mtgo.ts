@@ -28,8 +28,12 @@ export const MtgoService = {
             const response = await fetch(`https://meta-scope-backend.vercel.app/api/event/${id}`);
 
             if (!response.ok) {
-                console.error(`Backend returned status ${response.status}`);
-                return null;
+                let errorMessage = `Backend returned status ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    if (errorData.error) errorMessage = errorData.error;
+                } catch (e) { /* ignore json parse error */ }
+                throw new Error(errorMessage);
             }
 
             const eventData: Event = await response.json();
