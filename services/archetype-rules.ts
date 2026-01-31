@@ -166,6 +166,11 @@ export const RULES: ArchetypeRule[] = [
         mustContain: ["Omniscience", "Marang River Regent", "Roiling Dragonstorm"]
     },
     {
+        name: "Mono-Green Landfall",
+        format: "Standard",
+        mustContain: ["Mightform Harmonizer", "Earthbender Ascension", "Bristly Bill, Spine Sower", "Ba Sing Se", "Sapling Nursery"]
+    },
+    {
         name: "Selesnya Landfall",
         format: "Standard",
         mustContain: ["Earthbender Ascension", "Icetill Explorer", "Sazh's Chocobo", "Bristly Bill, Spine Sower", "Escape Tunnel"]

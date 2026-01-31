@@ -56,8 +56,22 @@ export default function EventDetailScreen() {
     const rawTitle = hasData ? `${event.format} ${event.type}` : `${fallback.name}`;
     const titleText = cleanTitle(rawTitle);
 
+    // Safe Date Parsing Key
+    const getSafeDate = (dateStr: string) => {
+        try {
+            if (!dateStr) return '';
+            // If dateStr has suffix garbage (e.g. 2026-01-30123...) strip it
+            const clean = dateStr.match(/^\d{4}-\d{2}-\d{2}/);
+            const target = clean ? clean[0] : dateStr;
+            const d = new Date(target);
+            return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+        } catch (e) {
+            return '';
+        }
+    };
+
     const isoDate = hasData
-        ? new Date(event.date).toISOString().split('T')[0]
+        ? getSafeDate(event.date)
         : fallback.date || '';
 
     // Format YYYY-MM-DD to "MMM Do YYYY" (e.g. "Jan 31st 2025")
