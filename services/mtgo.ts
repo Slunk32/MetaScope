@@ -1,4 +1,6 @@
 import { Deck, Event } from '@/types';
+import { EventSchema } from '@/types/schemas';
+import { z } from 'zod';
 import { ArchetypeService } from './archetype';
 
 const MTGO_URL = 'https://www.mtgo.com';
@@ -41,21 +43,31 @@ export const MtgoService = {
                 throw new Error(errorMessage);
             }
 
-            const eventData: Event = await response.json();
+
+
+            // ...
+
+            const rawData = await response.json();
+
+            // Validate & Transform with Zod (strips bad dates, defaults missing fields)
+            const eventData = EventSchema.parse(rawData);
 
             // Client-side enrichment: Classify Archetypes
-            // The backend currently returns 'Unknown' for archetypes, so we run our classifier here.
             if (eventData && eventData.decks) {
-                eventData.decks.forEach((d: Deck) => {
+                eventData.decks.forEach((d) => {
                     if (!d.archetype || d.archetype === 'Unknown') {
-                        d.archetype = ArchetypeService.classify(d, eventData.format);
+                        d.archetype = ArchetypeService.classify(d as Deck, eventData.format);
                     }
                 });
             }
 
-            return eventData;
+            return eventData as Event;
         } catch (error) {
             console.error(`Error fetching event ${id}:`, error);
+            // If Zod fails, we know it's a data structure mismatch
+            if (error instanceof z.ZodError) {
+                console.error('Validation Error:', error.issues);
+            }
             return null;
         }
     }
