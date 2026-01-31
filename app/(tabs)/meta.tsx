@@ -131,22 +131,22 @@ export default function MetaScreen() {
                 renderItem={({ item, index }) => (
                   <View className="flex-row items-center bg-[#1C1C1E] p-4 rounded-xl mb-2">
                     {/* Rank & Trend (Row Layout) */}
-                    <View className="w-14 flex-row items-center justify-center mr-2">
-                      <Text className="text-zinc-600 font-bold text-lg leading-6 mr-1">{index + 1}</Text>
-
-                      {/* Trend Indicator */}
+                    <View className="w-16 flex-row items-center justify-end mr-3">
+                      {/* Trend Indicator (Left) */}
                       {item.rankDiff > 0 && (
-                        <View className="items-center">
+                        <View className="items-center mr-2">
                           <FontAwesome name="caret-up" size={12} color="#4ade80" />
                           <Text className="text-[#4ade80] text-[8px] font-bold">{Math.abs(item.rankDiff)}</Text>
                         </View>
                       )}
                       {item.rankDiff < 0 && (
-                        <View className="items-center">
+                        <View className="items-center mr-2">
                           <FontAwesome name="caret-down" size={12} color="#f87171" />
                           <Text className="text-[#f87171] text-[8px] font-bold">{Math.abs(item.rankDiff)}</Text>
                         </View>
                       )}
+                      {/* Rank (Right) */}
+                      <Text className="text-zinc-600 font-bold text-lg leading-6">{index + 1}</Text>
                     </View>
 
                     <View className="flex-1">
