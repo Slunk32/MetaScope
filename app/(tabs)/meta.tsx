@@ -104,7 +104,7 @@ export default function MetaScreen() {
                 contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
                 ListHeaderComponent={
                   <View className="flex-row justify-between mb-2 px-2">
-                    {/* Rank Column - Widened for Trend */}
+                    {/* Rank Column - Fixed Width */}
                     <Text className="text-zinc-500 font-bold text-xs uppercase w-12 text-center">#</Text>
                     <Text className="text-zinc-500 font-bold text-xs uppercase flex-1">Archetype</Text>
                     {selectedType === 'Challenge' ? (
@@ -130,22 +130,23 @@ export default function MetaScreen() {
                 }
                 renderItem={({ item, index }) => (
                   <View className="flex-row items-center bg-[#1C1C1E] p-4 rounded-xl mb-2">
-                    {/* Rank & Trend (Row Layout) */}
-                    <View className="w-16 flex-row items-center justify-end mr-3">
-                      {/* Trend Indicator (Left) */}
+                    {/* Rank & Trend (Absolute Layout) */}
+                    <View className="w-12 relative items-center justify-center mr-2">
+                      {/* Trend Indicator (Absolute Left) */}
                       {item.rankDiff > 0 && (
-                        <View className="items-center mr-2">
-                          <FontAwesome name="caret-up" size={12} color="#4ade80" />
-                          <Text className="text-[#4ade80] text-[8px] font-bold">{Math.abs(item.rankDiff)}</Text>
+                        <View className="absolute left-0 items-center">
+                          <FontAwesome name="caret-up" size={10} color="#4ade80" />
+                          <Text className="text-[#4ade80] text-[7px] font-bold">{Math.abs(item.rankDiff)}</Text>
                         </View>
                       )}
                       {item.rankDiff < 0 && (
-                        <View className="items-center mr-2">
-                          <FontAwesome name="caret-down" size={12} color="#f87171" />
-                          <Text className="text-[#f87171] text-[8px] font-bold">{Math.abs(item.rankDiff)}</Text>
+                        <View className="absolute left-0 items-center">
+                          <FontAwesome name="caret-down" size={10} color="#f87171" />
+                          <Text className="text-[#f87171] text-[7px] font-bold">{Math.abs(item.rankDiff)}</Text>
                         </View>
                       )}
-                      {/* Rank (Right) */}
+
+                      {/* Rank Number (Centered) */}
                       <Text className="text-zinc-600 font-bold text-lg leading-6">{index + 1}</Text>
                     </View>
 
