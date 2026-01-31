@@ -1,129 +1,162 @@
-import { MtgoService } from '@/services/mtgo';
 import { useQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-const FORMATS = ['Modern', 'Pioneer', 'Legacy', 'Standard'];
+import { Stack } from 'expo-router';
+import React, { useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 
 export default function MetaScreen() {
-  const [selectedFormat, setSelectedFormat] = useState('Modern');
+  const [selectedFormat, setSelectedFormat] = useState('Standard');
+  const [selectedType, setSelectedType] = useState<'Challenge' | 'League'>('Challenge');
 
-  // 1. Fetch all recent events
-  const { data: eventsList, isLoading: isLoadingList } = useQuery({
-    queryKey: ['latestEvents'],
-    queryFn: MtgoService.getLatestEvents,
+  // Fetch Snapshot from Backend (Lazy Cache)
+  const { data: snapshot, isLoading, error } = useQuery({
+    queryKey: ['meta_analysis', selectedFormat],
+    queryFn: async () => {
+      // Call our Backend Analysis Endpoint
+      // Note: This endpoint handles checking the DB cache or computing the snapshot if needed.
+      const response = await fetch(`https://meta-scope-backend.vercel.app/api/meta/analysis?format=${selectedFormat}`);
+      if (!response.ok) throw new Error('Failed to fetch meta analysis');
+      return response.json();
+    },
   });
 
-  // 2. Find the latest event for the selected format
-  const latestEventShort = useMemo(() => {
-    if (!eventsList) return null;
-    return eventsList.find(e => e.format === selectedFormat);
-  }, [eventsList, selectedFormat]);
+  const dataList = useMemo(() => {
+    if (!snapshot) return [];
+    return selectedType === 'League' ? snapshot.leagues : snapshot.challenges;
+  }, [snapshot, selectedType]);
 
-  // 3. Fetch details for that specific event (to get decks)
-  const { data: fullEvent, isLoading: isLoadingEvent } = useQuery({
-    queryKey: ['event', latestEventShort?.id],
-    queryFn: () => MtgoService.getEvent(latestEventShort!.id),
-    enabled: !!latestEventShort?.id,
-  });
+  // Format Loading Text
+  const loadingText = useMemo(() => {
+    return "Checking the oracle..."; // Simple placeholder
+  }, []);
 
-  // 4. Aggregate Archetypes
-  const stats = useMemo(() => {
-    if (!fullEvent || !fullEvent.decks) return [];
-
-    const totalDecks = fullEvent.decks.length;
-    const counts: Record<string, number> = {};
-
-    fullEvent.decks.forEach(d => {
-      const arch = d.archetype || 'Unclassified';
-      counts[arch] = (counts[arch] || 0) + 1;
-    });
-
-    return Object.entries(counts)
-      .map(([name, count]) => ({
-        name,
-        count,
-        percent: (count / totalDecks) * 100,
-      }))
-      .sort((a, b) => b.count - a.count); // Sort by prevalence
-  }, [fullEvent]);
-
-  const isLoading = isLoadingList || (latestEventShort && isLoadingEvent);
+  if (error) {
+    return (
+      <View className="flex-1 bg-[#121212] pt-12 items-center justify-center">
+        <Text className="text-red-500 font-bold">Failed to load meta analysis</Text>
+        <Text className="text-zinc-500 mt-2">The backend might be warming up.</Text>
+      </View>
+    );
+  }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-black" edges={['top']}>
-      <View className="px-4 py-4">
-        <Text className="text-3xl font-bold tracking-tight text-black dark:text-white">
-          Metagame
+    <View className="flex-1 bg-[#121212] pt-12">
+      <Stack.Screen options={{ headerShown: false }} />
+
+      {/* Header */}
+      <View className="px-4 mb-6">
+        <Text className="text-3xl font-bold text-white tracking-tight">Weekly Meta</Text>
+        <Text className="text-zinc-500 font-medium">
+          {snapshot ? `Snapshot from ${new Date(snapshot.generatedAt || Date.now()).toLocaleDateString()}` : 'Loading snapshot...'}
         </Text>
       </View>
 
-      {/* Format Filter */}
+      {/* Controls */}
       <View className="px-4 mb-4">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
-          {FORMATS.map(fmt => (
-            <TouchableOpacity
+        {/* Format Switcher */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-4">
+          {['Standard', 'Pioneer', 'Modern', 'Legacy', 'Vintage', 'Pauper'].map(fmt => (
+            <Pressable
               key={fmt}
               onPress={() => setSelectedFormat(fmt)}
-              className={`px-4 py-2 rounded-full border ${selectedFormat === fmt
-                  ? 'bg-black border-black dark:bg-white dark:border-white'
-                  : 'bg-transparent border-gray-300 dark:border-gray-700'
-                }`}
+              className={`mr-3 px-4 py-2 rounded-full border ${selectedFormat === fmt ? 'bg-[#FFBE0B] border-[#FFBE0B]' : 'bg-transparent border-zinc-700'}`}
             >
-              <Text className={`font-semibold ${selectedFormat === fmt
-                  ? 'text-white dark:text-black'
-                  : 'text-gray-600 dark:text-gray-400'
-                }`}>
+              <Text className={`font-bold ${selectedFormat === fmt ? 'text-black' : 'text-zinc-400'}`}>
                 {fmt}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </ScrollView>
+
+        {/* Type Switcher */}
+        <View className="flex-row bg-[#1C1C1E] p-1 rounded-xl">
+          {(['Challenge', 'League'] as const).map(type => (
+            <Pressable
+              key={type}
+              onPress={() => setSelectedType(type)}
+              className={`flex-1 py-3 rounded-lg items-center ${selectedType === type ? 'bg-[#2C2C2E]' : 'bg-transparent'}`}
+            >
+              <Text className={`font-bold ${selectedType === type ? 'text-white' : 'text-zinc-500'}`}>
+                {type}s
+              </Text>
+            </Pressable>
+          ))}
+        </View>
       </View>
 
       {/* Content */}
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" />
-        </View>
-      ) : !latestEventShort ? (
-        <View className="flex-1 items-center justify-center px-4">
-          <Text className="text-gray-500 text-center">No recent events found for {selectedFormat}.</Text>
+          <ActivityIndicator size="large" color="#FFBE0B" />
+          <Text className="text-zinc-500 mt-4 italic">
+            Aligning ley lines...
+          </Text>
+          <Text className="text-zinc-700 text-xs mt-2">
+            (First load of the day may take a few seconds)
+          </Text>
         </View>
       ) : (
         <View className="flex-1 px-4">
-          <View className="mb-4 p-3 bg-white dark:bg-zinc-900 rounded-lg shadow-sm">
-            <Text className="text-sm text-gray-400 uppercase font-bold">Based on latest event</Text>
-            <Text className="text-lg font-bold text-black dark:text-white">{latestEventShort.name}</Text>
-            <Text className="text-gray-500 text-xs">{new Date(latestEventShort.date).toLocaleDateString()}</Text>
-          </View>
-
           <FlatList
-            data={stats}
-            keyExtractor={item => item.name}
-            renderItem={({ item }) => (
-              <View className="mb-3 flex-row items-center">
+            data={dataList || []}
+            keyExtractor={(item) => item.name}
+            ListHeaderComponent={
+              <View className="flex-row justify-between mb-2 px-2">
+                <Text className="text-zinc-500 font-bold text-xs uppercase w-6">#</Text>
+                <Text className="text-zinc-500 font-bold text-xs uppercase flex-1">Archetype</Text>
+                {selectedType === 'Challenge' ? (
+                  <>
+                    <Text className="text-zinc-500 font-bold text-xs uppercase w-16 text-center">Top 8</Text>
+                    <Text className="text-zinc-500 font-bold text-xs uppercase w-16 text-center">Meta %</Text>
+                  </>
+                ) : (
+                  <>
+                    <Text className="text-zinc-500 font-bold text-xs uppercase w-16 text-center">Count</Text>
+                    <Text className="text-zinc-500 font-bold text-xs uppercase w-16 text-center">Freq</Text>
+                  </>
+                )}
+              </View>
+            }
+            renderItem={({ item, index }) => (
+              <View className="flex-row items-center bg-[#1C1C1E] p-4 rounded-xl mb-2">
+                <Text className="text-zinc-600 font-bold w-6">{index + 1}</Text>
                 <View className="flex-1">
-                  <View className="flex-row justify-between mb-1">
-                    <Text className="font-semibold text-gray-900 dark:text-white">{item.name}</Text>
-                    <Text className="text-gray-500 dark:text-gray-400">
-                      {item.count} ({item.percent.toFixed(1)}%)
-                    </Text>
-                  </View>
-                  <View className="h-2 bg-gray-200 dark:bg-zinc-800 rounded-full overflow-hidden">
-                    <View
-                      className="h-full bg-blue-500 dark:bg-blue-400"
-                      style={{ width: `${item.percent}%` }}
-                    />
-                  </View>
+                  <Text className="text-white font-bold text-base">{item.name}</Text>
                 </View>
+
+                {selectedType === 'Challenge' ? (
+                  <>
+                    <View className="w-16 items-center">
+                      <Text className="text-[#FFBE0B] font-bold text-lg">{item.top8Count}</Text>
+                      <Text className="text-zinc-500 text-xs">{(item.top8Share * 100).toFixed(0)}%</Text>
+                    </View>
+                    <View className="w-16 items-center">
+                      <Text className="text-zinc-300 font-medium">{item.count}</Text>
+                      <Text className="text-zinc-500 text-xs">{(item.metaShare * 100).toFixed(0)}%</Text>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <View className="bg-[#2C2C2E] px-3 py-1 rounded-full w-16 items-center">
+                      <Text className="text-white font-bold">{item.count}</Text>
+                    </View>
+                    <View className="w-16 items-center">
+                      <Text className="text-zinc-500 text-xs">{(item.frequency * 100).toFixed(0)}%</Text>
+                    </View>
+                  </>
+                )}
               </View>
             )}
-            contentContainerStyle={{ paddingBottom: 20 }}
+            ListEmptyComponent={
+              <View className="items-center py-12">
+                <Text className="text-zinc-500 text-lg">No data found for this period.</Text>
+              </View>
+            }
           />
+          <Text className="text-center text-zinc-600 text-xs py-4">
+            Analysis of {snapshot?.eventCount || 0} events.
+          </Text>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 }

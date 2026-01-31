@@ -144,5 +144,15 @@ export const RULES: ArchetypeRule[] = [
         name: "Grixis Reanimator",
         format: "Standard",
         mustContain: ["Overlord of the Balemurk", "Deceit", "Ill-Timed Explosion", "Watery Grave", "Steam Vents"]
+    },
+    {
+        name: "Golgari Midrange",
+        format: "Standard",
+        mustContain: ["Unholy Annex // Ritual Chamber", "Sentinel of the Nameless City", "Overgrown Tomb", "Badgermole Cub", "Deep-Cavern Bat"]
+    },
+    {
+        name: "Allies",
+        format: "Standard",
+        mustContain: ["Cavern of Souls", "Jasmine Dragon Tea Shop", "South Pole Voyager", "Great Divide Guide"]
     }
 ];
