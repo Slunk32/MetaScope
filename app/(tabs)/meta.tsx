@@ -107,7 +107,7 @@ export default function MetaScreen() {
                   <>
                     {/* Clarified Headers */}
                     <Text className="text-zinc-500 font-bold text-xs uppercase w-16 text-center">Top 8</Text>
-                    <Text className="text-zinc-500 font-bold text-xs uppercase w-16 text-center">Field</Text>
+                    <Text className="text-zinc-500 font-bold text-xs uppercase w-16 text-center">Overall</Text>
                   </>
                 ) : (
                   <>
@@ -135,8 +135,8 @@ export default function MetaScreen() {
                       <Text className="text-zinc-500 text-xs">{(item.top8Share * 100).toFixed(0)}%</Text>
                     </View>
                     <View className="w-16 items-center">
-                      {/* Field Stats */}
-                      <Text className="text-zinc-300 font-medium">{item.count}</Text>
+                      {/* Overall Stats - Matched size/weight for alignment */}
+                      <Text className="text-zinc-300 font-bold text-lg">{item.count}</Text>
                       <Text className="text-zinc-500 text-xs">{(item.metaShare * 100).toFixed(0)}%</Text>
                     </View>
                   </>
