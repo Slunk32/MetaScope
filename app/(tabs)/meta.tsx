@@ -106,10 +106,14 @@ export default function MetaScreen() {
                 keyExtractor={(item) => item.name}
                 contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
                 ListHeaderComponent={
-                  <View className="flex-row justify-between mb-2 px-2">
-                    {/* Rank Column - Fixed Width */}
-                    <Text className="text-zinc-500 font-bold text-xs uppercase w-12 text-center">#</Text>
-                    <Text className="text-zinc-500 font-bold text-xs uppercase flex-1">Archetype</Text>
+                  <View className="flex-row items-center mb-2 px-4">
+                    {/* Rank Column - Matches renderItem layout */}
+                    <View className="w-12 items-center justify-center mr-2">
+                      <Text className="text-zinc-500 font-bold text-xs uppercase">#</Text>
+                    </View>
+
+                    <Text className="text-zinc-500 font-bold text-xs uppercase flex-1 text-left">Archetype</Text>
+
                     {selectedType === 'Challenge' ? (
                       <>
                         <View className="w-16 items-center">
