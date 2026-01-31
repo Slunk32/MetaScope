@@ -31,7 +31,12 @@ export const MtgoService = {
                 let errorMessage = `Backend returned status ${response.status}`;
                 try {
                     const errorData = await response.json();
-                    if (errorData.error) errorMessage = errorData.error;
+                    if (errorData.error) {
+                        errorMessage = errorData.error;
+                        if (errorData.debug_html) {
+                            errorMessage += ` (Debug: ${errorData.debug_html.substring(0, 50)}...)`;
+                        }
+                    }
                 } catch (e) { /* ignore json parse error */ }
                 throw new Error(errorMessage);
             }
