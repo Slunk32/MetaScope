@@ -27,7 +27,8 @@ export const DeckSchema = z.object({
     anchorUri: z.string().optional(),
     mainboard: z.array(CardSchema).default([]),
     sideboard: z.array(CardSchema).default([]),
-    archetype: z.string().optional().default('Unknown')
+    archetype: z.string().optional().default('Unknown'),
+    rank: z.number().optional()
 });
 
 export const EventSchema = z.object({

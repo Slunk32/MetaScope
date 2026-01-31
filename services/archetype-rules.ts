@@ -11,7 +11,7 @@ export const RULES: ArchetypeRule[] = [
     {
         name: "Jeskai Control",
         format: "Standard",
-        mustContain: ["Day of Judgment", "Jeskai Revelation", "No More Lies", "Steam Vents", "Hallowed Fountain"]
+        mustContain: ["Day of Judgment", "Jeskai Revelation", "No More Lies"]
     },
     {
         name: "Jeskai Elementals",
@@ -24,17 +24,11 @@ export const RULES: ArchetypeRule[] = [
         format: "Standard",
         mustContain: ["Deceit", "Not Dead After All", "Watery Grave", "Cavern of Souls", "Sunderflock"]
     },
+
     {
         name: "Sultai Reanimator",
         format: "Standard",
-        mustContain: ["Bringer of the Last Gift", "Overlord of the Balemurk", "Formidable Speaker", "Ardyn, the Usurper"],
-        // MTGO sometimes uses "Kavaero, Mind-Bitten" instead of Universe Beyond names?
-        oneOf: ["Superior Spider-Man", "Kavaero, Mind-Bitten"]
-    },
-    {
-        name: "Sultai Reanimator",
-        format: "Standard",
-        mustContain: ["Bringer of the Last Gift", "Awaken the Honored Dead", "Formidable Speaker", "Ardyn, the Usurper"],
+        mustContain: ["Awaken the Honored Dead", "Bloom Tender", "Ardyn, the Usurper"],
         // MTGO sometimes uses "Kavaero, Mind-Bitten" instead of Universe Beyond names?
         oneOf: ["Superior Spider-Man", "Kavaero, Mind-Bitten"]
     },
@@ -138,7 +132,7 @@ export const RULES: ArchetypeRule[] = [
     {
         name: "Dimir Midrange",
         format: "Standard",
-        mustContain: ["Kaito, Bane of Nightmares", "Watery Grave", "Deep-Cavern Bat", "Tishana's Tidebinder", "Cecil, Dark Knight"]
+        mustContain: ["Kaito, Bane of Nightmares", "Watery Grave", "Cecil, Dark Knight"]
     },
     {
         name: "Esper Self-Bounce",
@@ -173,7 +167,7 @@ export const RULES: ArchetypeRule[] = [
     {
         name: "Selesnya Landfall",
         format: "Standard",
-        mustContain: ["Earthbender Ascension", "Icetill Explorer", "Sazh's Chocobo", "Bristly Bill, Spine Sower", "Escape Tunnel"]
+        mustContain: ["Earthbender Ascension", "Sazh's Chocobo", "Bristly Bill, Spine Sower", "Rest in Peace", "Escape Tunnel"]
     },
     {
         name: "Grixis Reanimator",
@@ -194,5 +188,26 @@ export const RULES: ArchetypeRule[] = [
         name: "Rakdos Goblins",
         format: "Standard",
         mustContain: ["Blood Crypt", "Cavern of Souls", "Krenko, Mob Boss", "Boggart Cursecrafter"]
+    },
+    {
+        name: "Selesnya Landfall",
+        format: "Standard",
+        mustContain: ["Nature's Rhythm", "Enduring Innocence", "Clarion Conqueror", "Hushwood Verge"]
+    },
+    {
+        name: "Boros Control",
+        format: "Standard",
+        mustContain: ["Elspeth: Storm Slayer", "Chandra, Spark Hunter", "Lightning Helix", "Day of Judgment"]
+    },
+    {
+        name: "Temur Elementals",
+        format: "Standard",
+        mustContain: ["Vibrance", "Deceit", "Ashling's Command", "Wistfulness", "Roaming Throne"]
+    },
+    {
+        name: "Sultai Reanimator",
+        format: "Standard",
+        mustContain: ["Deceit", "Wistfulness"],
+        oneOf: ["Superior Spider-Man", "Kavaero, Mind-Bitten", "Overlord of the Balemurk", "Awaken the Honored Dead"]
     }
 ];
