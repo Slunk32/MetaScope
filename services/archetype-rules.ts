@@ -156,6 +156,8 @@ export const RULES: ArchetypeRule[] = [
         mustContain: ["Unholy Annex // Ritual Chamber", "Sentinel of the Nameless City", "Overgrown Tomb", "Badgermole Cub", "Deep-Cavern Bat"]
     },
     {
+        name: "Allies",
+        format: "Standard",
         mustContain: ["Cavern of Souls", "Jasmine Dragon Tea Shop", "South Pole Voyager", "Great Divide Guide"]
     },
     {
