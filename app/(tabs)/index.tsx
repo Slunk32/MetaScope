@@ -35,7 +35,8 @@ export default function LatestEventsScreen() {
   if (error) {
     return (
       <View className="flex-1 items-center justify-center bg-black">
-        <Text className="text-red-500">Error loading events</Text>
+        <Text className="text-red-500 font-bold mb-2">Error Loading Events</Text>
+        <Text className="text-zinc-400 px-8 text-center">{error instanceof Error ? error.message : 'Unknown error'}</Text>
       </View>
     );
   }

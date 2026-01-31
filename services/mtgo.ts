@@ -15,8 +15,9 @@ export const MtgoService = {
                 date: extractDateFromId(e.id) || e.date
             }));
         } catch (error) {
-            console.error('Error fetching latest events from backend:', error);
-            return [];
+            console.error('FAILED TO LOAD EVENTS:', error);
+            // Temporary: throw so the UI shows 'Error' instead of empty list
+            throw error;
         }
     },
 
@@ -54,9 +55,20 @@ export const MtgoService = {
             const match = html.match(regex);
 
             if (!match) {
-                console.error(`Failed to parse MTGO data. content-length: ${html.length}`);
-                console.error('HTML Preview:', html.substring(0, 200));
-                return null;
+                // Check for common error states
+                if (html.includes('Error 404') || html.includes('Page Not Found')) {
+                    throw new Error('Event not found (404). ID might be invalid/future.');
+                }
+                if (html.includes('Coming Soon')) {
+                    throw new Error('Event data is not yet available (Coming Soon).');
+                }
+
+                // For other errors, log ONLY the title, no raw HTML
+                const title = html.match(/<title>(.*?)<\/title>/)?.[1] || 'Unknown Page';
+                console.warn(`[MTGO Scraper] Failed to find data regex. URL: ${url}`);
+                console.warn(`[MTGO Scraper] Page Title: ${title}`);
+
+                throw new Error('Failed to parse MTGO event data. Structure may have changed.');
             }
 
             const data = JSON.parse(match[1]);
@@ -90,15 +102,34 @@ export const MtgoService = {
 
             // Map to our Deck type
             const decks: Deck[] = (data.decklists || []).map((d: any, index: number) => {
-                const mainboard: Card[] = (d.main_deck || []).map((c: any) => ({
-                    name: c.card_attributes.card_name,
-                    quantity: parseInt(c.qty, 10),
-                }));
+                // Universe Beyond / Skin Overrides
+                // MTGO sends internal names (e.g. "Kavaero"), we want the Skin name (e.g. "Spider-Man")
+                const CARD_OVERRIDES: Record<string, string> = {
+                    "Kavaero, Mind-Bitten": "Superior Spider-Man",
+                    "Darval, Whose Web Protects": "Spider-Man, Web-Slinger",
+                    "Mothwing Shroud": "Web Up",
+                    // "Enweb": "???", // Need to confirm specific card name if user reports it
+                    // Add more here as discovered:
+                    // "Internal Name": "Cool Skin Name"
+                };
 
-                const sideboard: Card[] = (d.sideboard_deck || []).map((c: any) => ({
-                    name: c.card_attributes.card_name,
-                    quantity: parseInt(c.qty, 10),
-                }));
+                // Helper to consolidate duplicates & apply overrides
+                const consolidate = (cards: any[]) => {
+                    const map = new Map<string, number>();
+                    cards.forEach((c: any) => {
+                        let name = c.card_attributes.card_name;
+                        // Apply override if exists
+                        if (CARD_OVERRIDES[name]) {
+                            name = CARD_OVERRIDES[name];
+                        }
+                        const qty = parseInt(c.qty, 10);
+                        map.set(name, (map.get(name) || 0) + qty);
+                    });
+                    return Array.from(map.entries()).map(([name, quantity]) => ({ name, quantity }));
+                };
+
+                const mainboard: Card[] = consolidate(d.main_deck || []);
+                const sideboard: Card[] = consolidate(d.sideboard_deck || []);
 
                 // Handle wins/result format variation
                 let result = '';

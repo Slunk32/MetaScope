@@ -1,44 +1,57 @@
-import rulesData from '@/assets/archetypes.json';
 import { Deck } from '@/types';
-
-type Rule = {
-    name: string;
-    required?: string[];
-    exclude?: string[];
-};
-
-type Rules = Record<string, Rule[]>;
-
-const RULES: Rules = rulesData as Rules;
+import { RULES } from './archetype-rules';
 
 export const ArchetypeService = {
     classify(deck: Deck, format: string): string {
-        const formatRules = RULES[format] || RULES['Modern']; // Default to Modern if unknown or use loop
+        // Create a Set of all card names (main + side) for O(1) lookup
+        const deckCards = new Set<string>();
+        deck.mainboard.forEach(c => deckCards.add(c.name));
+        deck.sideboard.forEach(c => deckCards.add(c.name));
 
-        if (!formatRules) return 'Unknown';
-
-        // Simplified classification: check if deck contains ALL required cards for a rule
-        // We prioritize rules in order of definition (could add scoring later)
-
-        // Create a set of card names for O(1) lookup
-        const deckCards = new Set([
-            ...deck.mainboard.map(c => c.name),
-            ...deck.sideboard.map(c => c.name) // Some key cards might be in sideboard? Usually main.
-        ]);
+        // Filter rules by format (case-insensitive)
+        const formatRules = RULES.filter(r => r.format.toLowerCase() === format.toLowerCase());
 
         for (const rule of formatRules) {
-            if (rule.required) {
-                const hasAll = rule.required.every(card => deckCards.has(card));
-                if (hasAll) {
-                    // Optional: Check exclusions
-                    if (rule.exclude && rule.exclude.some(card => deckCards.has(card))) {
-                        continue;
+            // 1. Check Exclusion (Fail fast)
+            if (rule.exclude && rule.exclude.some(card => deckCards.has(card))) {
+                continue;
+            }
+
+            // 2. Check "Must Contain" (All required)
+            // We use a looser check: does the deck contain this card name, 
+            // OR does the deck contain a split card starting with this name?
+            const hasAllRequired = rule.mustContain.every(reqCard => {
+                if (deckCards.has(reqCard)) return true;
+                // Double check for split cards (e.g. rule "Fire" matches deck "Fire // Ice")
+                for (const deckCard of deckCards) {
+                    if (deckCard.startsWith(reqCard + ' //')) return true;
+                }
+                return false;
+            });
+
+            if (!hasAllRequired) {
+                continue;
+            }
+
+            // 3. Check "One Of" (At least one required, if defined)
+            if (rule.oneOf && rule.oneOf.length > 0) {
+                const hasOneOf = rule.oneOf.some(reqCard => {
+                    if (deckCards.has(reqCard)) return true;
+                    for (const deckCard of deckCards) {
+                        if (deckCard.startsWith(reqCard + ' //')) return true;
                     }
-                    return rule.name;
+                    return false;
+                });
+
+                if (!hasOneOf) {
+                    continue;
                 }
             }
+
+            // Match found!
+            return rule.name;
         }
 
-        return 'Other';
+        return 'Unknown';
     }
 };
