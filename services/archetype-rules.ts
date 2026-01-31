@@ -56,6 +56,16 @@ export const RULES: ArchetypeRule[] = [
 
     // --- 2-Color / Focused Decks ---
     {
+        name: "Boros Aggro",
+        format: "Standard",
+        mustContain: ["Inspiring Vantage", "Boros Charm", "Nova Hellkite"]
+    },
+    {
+        name: "Boros Aggro",
+        format: "Standard",
+        mustContain: ["Burst Lightning", "Shock", "Nova Hellkite", "Boros Charm"]
+    },
+    {
         name: "Boros Dragons",
         format: "Standard",
         mustContain: ["Sacred Foundry", "Sarkhan, Dragon Ascendant", "Nova Hellkite"]
@@ -85,6 +95,11 @@ export const RULES: ArchetypeRule[] = [
         name: "Izzet Lessons",
         format: "Standard",
         mustContain: ["Gran-Gran", "Monument to Endurance", "Combustion Technique"]
+    },
+    {
+        name: "Izzet Lessons",
+        format: "Standard",
+        mustContain: ["Gran-Gran", "Cori-Steel Cuter", "Stormchaser's Talent", "Divide by Zero"]
     },
     {
         name: "Gruul Landfall",
@@ -129,6 +144,16 @@ export const RULES: ArchetypeRule[] = [
         name: "Esper Self-Bounce",
         format: "Standard",
         mustContain: ["Nurturing Pixie", "Sunpearl Kirin", "Godless Shrine", "Hallowed Fountain", "Grim Bauble"]
+    },
+    {
+        name: "Mono-Red Aggro",
+        format: "Standard",
+        mustContain: ["Rockface Village", "Burst Lightning", "Razorkin Needlehead", "Soulstone Sanctuary"]
+    },
+    {
+        name: "Mono-Red Aggro",
+        format: "Standard",
+        mustContain: ["Burst Lightning", "Lightning Strike", "Hired Claw", "Razorkin Needlehead", "Fanatical Firebrand"]
     },
     {
         name: "Mono-Red Aggro",
