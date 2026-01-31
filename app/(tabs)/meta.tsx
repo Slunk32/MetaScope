@@ -5,14 +5,7 @@ import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StatusBar, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const LOADING_MESSAGES = [
-  "Aligning ley lines...",
-  '"JUDGE!"',
-  "Consulting the Oracle...",
-  "Gathering mana...",
-  "Shuffling library...",
-  "Sideboarding..."
-];
+import { LOADING_MESSAGES } from '@/constants/messages';
 
 const FORMATS = ['Standard', 'Pioneer', 'Modern', 'Legacy', 'Vintage', 'Pauper'];
 

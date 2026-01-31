@@ -140,20 +140,13 @@ export default function EventDetailScreen() {
         />
     );
 
+    import { LOADING_MESSAGES } from '@/constants/messages';
+
+    // ... (inside component)
+
     // Magic Loading Phrases
     const loadingPhrase = React.useMemo(() => {
-        const phrases = [
-            "In the tank...",
-            "Consulting the Oracle...",
-            "Shuffling up...",
-            "Drawing opening hand...",
-            "Resolving mulligans...",
-            "Waiting for judge call...",
-            "Sideboarding...",
-            "Fetching decklists...",
-            "Untapping mana..."
-        ];
-        return phrases[Math.floor(Math.random() * phrases.length)];
+        return LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)];
     }, []);
 
     if (isLoading) {
