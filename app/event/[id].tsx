@@ -140,10 +140,6 @@ export default function EventDetailScreen() {
         />
     );
 
-    import { LOADING_MESSAGES } from '@/constants/messages';
-
-    // ... (inside component)
-
     // Magic Loading Phrases
     const loadingPhrase = React.useMemo(() => {
         return LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)];
