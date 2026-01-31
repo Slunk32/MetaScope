@@ -27,7 +27,7 @@ export default function LatestEventsScreen() {
       if (seen.has(e.id)) return false;
       seen.add(e.id);
       return true;
-    });
+    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     if (selectedFormat === 'All') return uniqueEvents;
     return uniqueEvents.filter((e) => e.format === selectedFormat);
