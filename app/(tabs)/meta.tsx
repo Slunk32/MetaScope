@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const LOADING_MESSAGES = [
   "Aligning ley lines...",
+  '"JUDGE!"',
   "Consulting the Oracle...",
   "Gathering mana...",
   "Shuffling library...",
