@@ -6,7 +6,7 @@ export type ArchetypeRule = {
     exclude?: string[];    // Deck MUST NOT have any of these cards
 };
 
-export const RULES: ArchetypeRule[] = [
+const STANDARD_RULES: ArchetypeRule[] = [
     // --- 3-Color / Specific Decks ---
     {
         name: "Jeskai Control",
@@ -215,4 +215,173 @@ export const RULES: ArchetypeRule[] = [
         mustContain: ["Deceit", "Wistfulness"],
         oneOf: ["Superior Spider-Man", "Kavaero, Mind-Bitten", "Overlord of the Balemurk", "Awaken the Honored Dead"]
     }
+];
+
+const MODERN_RULES: ArchetypeRule[] = [
+    {
+        name: "Boros Energy",
+        format: "Modern",
+        mustContain: ["Phlage, Titan of Fire's Fury", "Goblin Bombardment", "Ajani, Nacatl Pariah", "Ocelot Pride"]
+    },
+    {
+        name: "Ruby Storm",
+        format: "Modern",
+        mustContain: ["Ral, Monsoon Mage", "Ruby Medallion", "Past in Flames"]
+    },
+    {
+        name: "Eldrazi Tron",
+        format: "Modern",
+        mustContain: ["Devourer of Destiny", "Urza's Mine", "Urza's Power Plant", "Urza's Tower", "Expedition Map", "Karn, the Great Creator", "Ugin, Eye of the Storms"]
+    },
+    {
+        name: "Izzet Affinity",
+        format: "Modern",
+        mustContain: ["Weapons Manufacturing", "Pinnacle Emissary", "Kappa Cannoneer"]
+    },
+    {
+        name: "Jeskai Blink",
+        format: "Modern",
+        mustContain: ["Quantum Riddler", "Solitude", "Ephemerate", "Phlage, Titan of Fire's Fury", "Phelia, Exuberant Shepherd"]
+    },
+    {
+        name: "Domain Zoo",
+        format: "Modern",
+        mustContain: ["Territorial Kavu", "Leyline of the Guildpact", "Tribal Flames"]
+    },
+    {
+        name: "Amulet Titan",
+        format: "Modern",
+        mustContain: ["Primeval Titan", "Amulet of Vigor", "Summoner's Pact", "Arboreal Grazer"]
+    },
+    {
+        name: "Neobrand",
+        format: "Modern",
+        mustContain: ["Neoform", "Eldritch Evolution"]
+    },
+    {
+        name: "Goryo's Vengeance",
+        format: "Modern",
+        mustContain: ["Atraxa, Grand Unifier", "Goryo's Vengeance", "Psychic Frog"]
+    },
+    {
+        name: "Belcher",
+        format: "Modern",
+        mustContain: ["Goblin Charbelcher", "Disrupting Shoal", "Suppression Ray"]
+    },
+    {
+        name: "Yawgmoth",
+        format: "Modern",
+        mustContain: ["Yawgmoth, Thran Physician", "Young Wolf", "Green Sun's Zenith"]
+    },
+    {
+        name: "Living End",
+        format: "Modern",
+        mustContain: ["Living End"]
+    },
+    {
+        name: "Gruul Eldrazi",
+        format: "Modern",
+        mustContain: ["Talisman of Impulse", "Emrakul, the Promised End", "Sowing Mycospawn", "Kozilek's Return"]
+    },
+    {
+        name: "Dimir Midrange",
+        format: "Modern",
+        mustContain: ["Orcish Bowmasters", "Wan Shi Tong, Librarian", "Subtlety", "Fatal Push"]
+    },
+    {
+        name: "Grixis Reanimator",
+        format: "Modern",
+        mustContain: ["Gran-Gran", "Persist", "Archon of Cruelty", "Abhorrent Oculus"]
+    },
+    {
+        name: "Basking Broodscale Combo",
+        format: "Modern",
+        mustContain: ["Blade of the Bloodchief", "Basking Broodscale"]
+    },
+    {
+        name: "Temur Prowess",
+        format: "Modern",
+        mustContain: ["Monastery Swiftspear", "Mutagenic Growth", "Lightning Bolt", "Slickshot Show-Off", "Cori-Steel Cutter"]
+    },
+    {
+        name: "Rakdos Discard",
+        format: "Modern",
+        mustContain: ["Nethergoyf", "Faithless Looting", "Hollow One", "Burning Inquiry"]
+    },
+    {
+        name: "Izzet Steel-Cutter",
+        format: "Modern",
+        mustContain: ["Cori-Steel Cutter", "Flame of Anor", "Tamiyo, Inquisitive Student", "Urza's Saga"]
+    },
+    {
+        name: "Through the Breach",
+        format: "Modern",
+        mustContain: ["Through the Breach"]
+    },
+    {
+        name: "Simic Midrange",
+        format: "Modern",
+        mustContain: ["Birthing Ritual", "Shardless Agent", "Flare of Denial", "Ice-Fang Coatl"]
+    },
+    {
+        name: "Sultai Midrange",
+        format: "Modern",
+        mustContain: ["Birthing Ritual", "Shardless Agent", "Flare of Denial", "Ice-Fang Coatl", "Culling Ritual"]
+    },
+    {
+        name: "Song of Creation",
+        format: "Modern",
+        mustContain: ["Song of Creation"]
+    },
+    {
+        name: "Jeskai Control",
+        format: "Modern",
+        mustContain: ["Teferi, Time Raveler", "Solitude", "Counterspell", "Galvanic Discharge"]
+    },
+    // --- New Additions ---
+    {
+        name: "Mill",
+        format: "Modern",
+        mustContain: ["Hedron Crab", "Ruin Crab", "Archive Trap"]
+    },
+    {
+        name: "Hardened Scales",
+        format: "Modern",
+        mustContain: ["Hardened Scales"]
+    },
+    {
+        name: "Esper Blink",
+        format: "Modern",
+        mustContain: ["Ephemerate", "Overlord of the Balemurk", "Quantum Riddler"]
+    },
+    {
+        name: "Mono-Black Midrange",
+        format: "Modern",
+        mustContain: ["Ifnir Deadlands", "Thoughtseize", "Urza's Saga", "Urborg, Tomb of Yawgmoth"]
+    },
+    {
+        name: "Hammer Time",
+        format: "Modern",
+        mustContain: ["Sigarda's Aid", "Colossus Hammer"]
+    },
+    {
+        name: "4c Omnath",
+        format: "Modern",
+        mustContain: ["Wrenn and Six", "Omnath, Locus of Creation", "Phlage, Titan of Fire's Fury", "Leyline Binding"]
+    },
+    {
+        name: "Merfolk",
+        format: "Modern",
+        mustContain: ["Cavern of Souls", "Aether Vial", "Master of the Pearl Trident"]
+    },
+    {
+        name: "Dimir Midrange",
+        format: "Modern",
+        mustContain: ["Tamiyo, Inquisitive Student", "Quantum Riddler", "Psychic Frog", "Counterspell", "Thoughtseize"]
+    }
+];
+
+export const RULES: ArchetypeRule[] = [
+    ...STANDARD_RULES,
+    ...MODERN_RULES
 ];

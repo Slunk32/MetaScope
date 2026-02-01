@@ -20,17 +20,21 @@ export default function DeckDetailScreen() {
 
     const deck = event?.decks.find((d) => d.id === id);
 
-    // Immediate Header Config
-    const headerTitle = deck ? `${deck.player}'s Deck` : 'Deck Details';
 
     // Consistent stack config to prevent layout shifts/snaps
     const stackConfig = (
         <Stack.Screen
             options={{
-                title: headerTitle,
+                headerTitle: () => (
+                    <View className="items-center">
+                        <Text className="text-white font-bold text-lg">{deck?.archetype || 'Deck Details'}</Text>
+                        {deck?.player && (
+                            <Text className="text-zinc-400 text-[10px] font-medium">{deck.player}'s Deck</Text>
+                        )}
+                    </View>
+                ),
                 headerStyle: { backgroundColor: '#121212' },
                 headerTintColor: 'white',
-                headerTitleStyle: { fontWeight: 'bold' },
                 headerShadowVisible: false,
                 headerLeft: () => (
                     <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center">

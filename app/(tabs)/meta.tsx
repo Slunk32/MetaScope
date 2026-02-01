@@ -70,7 +70,7 @@ export default function MetaScreen() {
               <FontAwesome name={isFilterVisible ? "chevron-up" : "chevron-down"} size={18} color="#a1a1aa" style={{ marginTop: 6 }} />
             </Pressable>
             <Text className="text-zinc-500 font-medium mt-1">
-              {isLoading ? "Fetching snapshot..." : dateRangeString}
+              {isLoading ? "" : dateRangeString}
             </Text>
           </View>
 
