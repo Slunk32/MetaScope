@@ -70,7 +70,7 @@ export default function MetaScreen() {
               <FontAwesome name={isFilterVisible ? "chevron-up" : "chevron-down"} size={18} color="#a1a1aa" style={{ marginTop: 6 }} />
             </Pressable>
             <Text className="text-zinc-500 font-medium mt-1">
-              {isLoading ? loadingMessage : dateRangeString}
+              {isLoading ? "Fetching snapshot..." : dateRangeString}
             </Text>
           </View>
 
@@ -94,10 +94,10 @@ export default function MetaScreen() {
           {/* Content */}
           {isLoading ? (
             <View className="flex-1 items-center justify-center">
-              <ActivityIndicator size="large" color="#FFBE0B" />
-              <Text className="text-zinc-500 mt-4 italic">
+              <Text className="text-zinc-500 mb-4 italic text-base">
                 {loadingMessage}
               </Text>
+              <ActivityIndicator size="large" color="#FFBE0B" />
             </View>
           ) : (
             <View className="flex-1">

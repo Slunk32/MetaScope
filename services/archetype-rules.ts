@@ -11,7 +11,12 @@ export const RULES: ArchetypeRule[] = [
     {
         name: "Jeskai Control",
         format: "Standard",
-        mustContain: ["Day of Judgment", "Jeskai Revelation", "No More Lies"]
+        mustContain: ["Day of Judgment", "Jeskai Revelation", "No More Lies", "Lightning Helix"]
+    },
+    {
+        name: "Jeskai Control",
+        format: "Standard",
+        mustContain: ["Day of Judgment", "No More Lies", "Lightning Helix"]
     },
     {
         name: "Jeskai Elementals",
